@@ -1,6 +1,6 @@
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/aq1/WillBeams?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-#Сбор webm
+#Webm scraper
 
 ##Scraper
 Скрипт, собирающий webm видео с одного сайта.
