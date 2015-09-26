@@ -1,7 +1,7 @@
-# confirm = raw_input('Really? Y/N')
+confirm = input('Really? Y/N')
 
-# if confirm not in ('y', 'Y', 'yes', 'yeap', 'da', 'aga', 'konechno, go'):
-#     exit()
+if confirm not in ('y', 'Y', 'yes', 'yeap', 'da', 'aga', 'konechno, go'):
+    exit()
 
 import os
 import sys
