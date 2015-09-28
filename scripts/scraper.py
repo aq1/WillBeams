@@ -342,27 +342,3 @@ if __name__ == '__main__':
     sections = ['vg', 'b', 'a', 'mov']
     main_worker = MainWorker(sections)
     main_worker.work()
-
-    # def f(q, l):
-    #     i = 0
-    #     while True:
-    #         with l:
-    #             q.put(i)
-    #         i += 1
-    #         inform('put ', i)
-    #         time.sleep(0.1)
-
-    # def g(q, l):
-    #     while True:
-    #         time.sleep(2)
-    #         with l:
-    #             while not q.empty():
-    #                 inform(q.get())
-    #                 time.sleep(0.2)
-    #         inform('over')
-
-    # l = threading.RLock()
-    # q = queue.Queue()
-
-    # threading.Thread(target=f, args=[q, l]).start()
-    # threading.Thread(target=g, args=[q, l]).start()
