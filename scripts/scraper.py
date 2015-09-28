@@ -96,7 +96,6 @@ class Connection(object):
     def get_response(self, request):
         return self._get_response(request)
 
-    # @_repeat_on(TypeError)
     def get_json(self, request):
         json_data = {}
 
@@ -111,8 +110,10 @@ class Connection(object):
         if resp.status == 200:
             try:
                 json_data = json.loads(data)
-            except ValueError:
-                inform('Cannot decode json', level=INFO)
+            except ValueError as e:
+                inform(e, level=WARNING)
+            except TypeError as e:
+                inform(e, level=WARNING)
 
         return resp.status, json_data
 
@@ -139,8 +140,13 @@ class Thread:
             return webms
 
         found_webms_count = 0
+        try:
+            posts = data['threads'][0]['posts']
+        except KeyError as e:
+            inform(e, level=WARNING)
+            return webms
 
-        for post in data['threads'][0]['posts']:
+        for post in posts:
 
             if post['num'] <= self._last_post:
                 continue
