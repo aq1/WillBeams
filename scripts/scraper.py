@@ -22,21 +22,22 @@ HEADERS = {
     'Accept-Charset': 'utf-8',
 }
 
-QUERY = r'(webm | цуиь | шebm | wbem)'
+# QUERY = r'(webm | цуиь | шebm | wbem)'
+LOGS_FOLDER = 'logs'
 WEBM = 6
 
 
 DOWNLOADERS = 2
 SEARCHERS = 2
 STOP_SIGNAL = (None, None, None)
-VERBOSITY_LEVEL = 2
 INFO, WARNING, ERROR = 3, 2, 1
+VERBOSITY_LEVEL = INFO
 
 
 def inform(msg, level=10):
 
     if level <= VERBOSITY_LEVEL:
-        inform(level)
+        print(msg)
 
 
 class Connection(object):
@@ -52,7 +53,7 @@ class Connection(object):
                     try:
                         return function(self, *args, **kwargs)
                     except exceptions as e:
-                        inform(e, level=2)
+                        inform(e, level=WARNING)
                         self._connect()
                         time.sleep(1)
             return _f
@@ -62,7 +63,7 @@ class Connection(object):
     def _connect(self):
         self._conn = http.HTTPSConnection(self._host)
         self._set_headers()
-        inform('Connected to {}'.format(self._host))
+        inform('Connected to {}'.format(self._host), level=INFO)
 
     def _set_cookie(self):
         resp = self.get_response('/')
@@ -73,10 +74,10 @@ class Connection(object):
         self._headers = HEADERS
 
     def _get_response(self, request):
-        # inform('Requesting {}'.format(request))
+        inform('Requesting {}'.format(request), level=INFO)
         self._conn.request('GET', request, headers=self._headers)
         resp = self._conn.getresponse()
-        # inform('Response is {}: {}'.format(resp.status, resp.reason))
+        inform('Response is {}: {}'.format(resp.status, resp.reason), level=INFO)
         return resp
 
     @_repeat_on(NETWORK_ERRORS)
@@ -99,7 +100,7 @@ class Connection(object):
             try:
                 json_data = json.loads(data)
             except ValueError:
-                inform('Cannot decode json')
+                inform('Cannot decode json', level=INFO)
 
         return resp.status, json_data
 
@@ -116,7 +117,7 @@ class Thread:
         self._url = THREAD_URL.format(section, number)
 
     def get_webms(self, fetch_tool):
-        # inform('Searching for webms. Last post: {}'.format(self._last_post))
+        inform('Searching for webms. Last post: {}'.format(self._last_post), level=INFO)
         webms = []
         status, data = fetch_tool(self._url)
 
@@ -145,7 +146,7 @@ class Thread:
                     md5 = f['md5']
                     webms.append((webm, thumb, md5))
 
-        inform('Found {} webms'.format(found_webms_count))
+        inform('Found {} webms'.format(found_webms_count), level=INFO)
         self._last_post = data['threads'][0]['posts'][-1]['num']
         return webms
 
@@ -172,7 +173,7 @@ class Catalog:
         try:
             threads = data['threads']
         except KeyError as e:
-            inform(e, threads.keys(), self._url, level=2)
+            inform(e, threads.keys(), self._url, level=WARNING)
             return result
 
         for thread in threads:
@@ -183,7 +184,7 @@ class Catalog:
 
             alive_threads.add(number)
 
-        inform('Found {} threads'.format(len(result)))
+        inform('Found {} threads'.format(len(result)), level=INFO)
         self._threads = alive_threads
         return result
 
@@ -215,6 +216,7 @@ class Searcher(Connection):
         while True:
             thread = self._thread_Q.get()
             if thread == STOP_SIGNAL:
+                print('I\'m done', level=INFO)
                 return
 
             webms = thread.get_webms(self.get_json)
@@ -256,6 +258,7 @@ class Downloader(Connection):
         while True:
             data = self._file_Q.get()
             if data == STOP_SIGNAL:
+                inform('I\'m done', level=INFO)
                 return
 
             filename, webm, thumb = self._download(data)
@@ -271,7 +274,12 @@ class Logger:
         self._log = log
         self._time = time.time()
         self._wait_time = 5 * 1
-        self._file = open(datetime.now().strftime('%Y %m %d %H-%M.txt'), 'w')
+
+        if not os.path.exists(LOGS_FOLDER):
+            os.makedirs(LOGS_FOLDER)
+
+        self._file = open(
+            datetime.now().strftime(os.path.join(LOGS_FOLDER, '%Y %m %d %H-%M.txt')), 'w')
 
     def work(self):
         while True:

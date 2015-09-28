@@ -45,7 +45,6 @@ class Webm(models.Model):
         html = '<img style="max-width:100%%; \
                 max-height:100%%; width:200px;" \
                 src="%s" alt="No thumb">'
-        print(html)
         try:
             return html % self.thumbnail.url
         except ValueError:

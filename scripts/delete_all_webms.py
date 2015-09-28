@@ -1,6 +1,6 @@
-confirm = input('Really? Y/N')
+confirm = input('Really? Y/N ')
 
-if confirm not in ('y', 'Y', 'yes', 'yeap', 'da', 'aga', 'konechno, go'):
+if confirm not in ('y', 'Y', 'yes', 'yeap', 'da', 'aga', 'konechno', 'go'):
     exit()
 
 import os
@@ -8,11 +8,15 @@ import sys
 
 import django
 
-os.environ["DJANGO_SETTINGS_MODULE"] = "WillBeams.settings"
-sys.path.append("WillBeams/")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(os.path.join(BASE_DIR, 'WillBeams'))
+sys.path.append(BASE_DIR)
 
+
+os.environ["DJANGO_SETTINGS_MODULE"] = 'WillBeams.settings'
 django.setup()
 
-from will_beams.models import Webm
+
+from webm.models import Webm
 
 Webm.objects.all().delete()
