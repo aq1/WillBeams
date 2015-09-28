@@ -143,7 +143,7 @@ class Thread:
         try:
             posts = data['threads'][0]['posts']
         except KeyError as e:
-            inform(e, level=WARNING)
+            inform('Key error: {}'.format(e), level=WARNING)
             return webms
 
         for post in posts:
