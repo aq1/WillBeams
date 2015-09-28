@@ -16,7 +16,7 @@ from django.db.utils import IntegrityError
 os.environ["DJANGO_SETTINGS_MODULE"] = 'WillBeams.settings'
 django.setup()
 
-from webm.models import Webm, get_media_folder
+from webm.models import Webm, get_media_folder, WebmUrl
 import scraper
 
 
@@ -24,12 +24,13 @@ class DownloadToModel(scraper.Downloader):
 
     def __init__(self, *args, **kwargs):
         self._webm_obj = None
+        self._webm_url = None
         super().__init__(*args, **kwargs)
 
     def _download(self, data):
-        md5 = data[-1]
+        self._webm_url, md5 = data[0], data[-1]
         try:
-            Webm.increase_rating(md5)
+            self._webm_obj = Webm.increase_rating(md5)
             result = None, None, None
         except Webm.DoesNotExist:
             self._webm_obj = Webm(md5=md5)
@@ -57,8 +58,11 @@ class DownloadToModel(scraper.Downloader):
 
         try:
             self._webm_obj.save()
-        except IntegrityError:
-            Webm.increase_rating(self._webm_obj.md5)
+        except IntegrityError as e:
+            self._webm_obj = Webm.objects.get(md5=self._webm_obj.md5)
+            scraper.inform(e, level=scraper.WARNING)
+        finally:
+            WebmUrl.objects.create(webm=self._webm_obj, url=self._webm_url)
 
     def work(self, *args, **kwargs):
         return super().work(self.save)

@@ -34,10 +34,22 @@ INFO, WARNING, ERROR = 3, 2, 1
 VERBOSITY_LEVEL = INFO
 
 
+CONSOLE_COLORS = {
+    INFO: '\033[0m',
+    WARNING: '\033[93m',
+    ERROR: '\033[91m',
+    'HEADER': '\033[95m',
+    'OKGREEN': '\033[92m',
+    'ENDC': '\033[0m',
+    'BOLD': '\033[1m',
+    'UNDERLINE': '\033[4m',
+}
+
+
 def inform(msg, level=10):
 
     if level <= VERBOSITY_LEVEL:
-        print(msg)
+        print('{}{}{}'.format(CONSOLE_COLORS[level], msg, CONSOLE_COLORS['ENDC']))
 
 
 class Connection(object):
@@ -216,7 +228,7 @@ class Searcher(Connection):
         while True:
             thread = self._thread_Q.get()
             if thread == STOP_SIGNAL:
-                print('I\'m done', level=INFO)
+                inform('I\'m done', level=WARNING)
                 return
 
             webms = thread.get_webms(self.get_json)
@@ -258,7 +270,7 @@ class Downloader(Connection):
         while True:
             data = self._file_Q.get()
             if data == STOP_SIGNAL:
-                inform('I\'m done', level=INFO)
+                inform('I\'m done', level=WARNING)
                 return
 
             filename, webm, thumb = self._download(data)
@@ -292,8 +304,7 @@ class Logger:
                     lines = []
                     while not self._log.empty():
                         lines.append(self._log.get())
-                    self._file.write(
-                        '%s\n' % '\n'.join([str(each) for each in lines]))
+                    self._file.write('{}\n'.format('\n'.join([str(each) for each in lines])))
 
     def __del__(self):
         self._file.close()

@@ -65,3 +65,4 @@ target/
 WillBeams/media/*
 WillBeams/local_settings.py
 n.py
+scripts/logs/*

@@ -52,8 +52,5 @@ class Webm(models.Model):
 
     thumbnail_img.allow_tags = True
 
-    def __unicode__(self):
-        try:
-            return self.thumbnail.url.split('/')[-1]
-        except ValueError:
-            return self.md5
+    def __str__(self):
+        return self.thumbnail.url.split('/')[-1]

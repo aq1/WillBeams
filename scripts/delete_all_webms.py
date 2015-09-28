@@ -1,6 +1,7 @@
 confirm = input('Really? Y/N ')
 
 if confirm not in ('y', 'Y', 'yes', 'yeap', 'da', 'aga', 'konechno', 'go'):
+    print('Didn\'t do anything.')
     exit()
 
 import os
