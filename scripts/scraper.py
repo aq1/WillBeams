@@ -96,7 +96,7 @@ class Connection(object):
     def get_response(self, request):
         return self._get_response(request)
 
-    @_repeat_on(TypeError)
+    # @_repeat_on(TypeError)
     def get_json(self, request):
         json_data = {}
 
@@ -344,6 +344,7 @@ class MainWorker(Connection):
         for _ in range(DOWNLOADERS + SEARCHERS):
             self._file_Q.put(STOP_SIGNAL)
             self._thread_Q.put(STOP_SIGNAL)
+        exit()
 
     def work(self):
         try:
