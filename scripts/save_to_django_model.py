@@ -16,8 +16,18 @@ from django.db.utils import IntegrityError
 os.environ["DJANGO_SETTINGS_MODULE"] = 'WillBeams.settings'
 django.setup()
 
-from webm.models import Webm, get_media_folder, WebmUrl
+from webm.models import Webm, get_media_folder, WebmUrl, Section, WebmSection
 import scraper
+
+
+def _except_unique_violation(function):
+
+    def _f(self):
+        try:
+            return function(self)
+        except IntegrityError as e:
+            scraper.inform(e, level=scraper.WARNING)
+    return _f
 
 
 class DownloadToModel(scraper.Downloader):
@@ -27,8 +37,24 @@ class DownloadToModel(scraper.Downloader):
         self._webm_url = None
         super().__init__(*args, **kwargs)
 
+    @staticmethod
+    def _get_section(webm_url):
+        splitted = webm_url.split('/')
+        return splitted[0] or splitted[1] or None
+
+    @_except_unique_violation
     def _add_webm_url(self):
         WebmUrl.objects.create(webm=self._webm_obj, url=self._webm_url)
+
+    @_except_unique_violation
+    def _add_webm_section(self):
+        section, _ = Section.objects.get_or_create(name=self._get_section(self._webm_url))
+        if section:
+            WebmSection.objects.create(webm=self._webm_obj, section=section)
+
+    def _add_releated_info(self):
+        self._add_webm_url()
+        self._add_webm_section()
 
     def _download(self, data):
         self._webm_url, md5 = data[0], data[-1]
@@ -37,7 +63,7 @@ class DownloadToModel(scraper.Downloader):
             result = None, None, None
             scraper.inform(
                 'Increase rating {}'.format(self._webm_url), level=scraper.WARNING)
-            self._add_webm_url()
+            self._add_releated_info()
         except Webm.DoesNotExist:
             self._webm_obj = Webm(md5=md5)
             result = super()._download(data)
@@ -68,7 +94,7 @@ class DownloadToModel(scraper.Downloader):
             self._webm_obj = Webm.objects.get(md5=self._webm_obj.md5)
             scraper.inform(e, level=scraper.WARNING)
         finally:
-            self._add_webm_url()
+            self._add_releated_info()
 
     def work(self, *args, **kwargs):
         return super().work(self.save)

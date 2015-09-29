@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 
-from webm.models import Webm, Tag, WebmTag, WebmUrl
+from webm.models import Webm, Tag, WebmTag, WebmUrl, WebmSection
 
 
 class WebmUrlInline(admin.StackedInline):
@@ -53,3 +53,4 @@ class WebmUrlAdmin(admin.ModelAdmin):
 
 admin.site.register(Tag)
 admin.site.register(WebmTag)
+admin.site.register(WebmSection)
