@@ -32,6 +32,8 @@ class DownloadToModel(scraper.Downloader):
         try:
             self._webm_obj = Webm.increase_rating(md5)
             result = None, None, None
+            scraper.inform(
+                'Increase rating {}'.format(self._webm_url), level=scraper.WARNING)
         except Webm.DoesNotExist:
             self._webm_obj = Webm(md5=md5)
             result = super()._download(data)

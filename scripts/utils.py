@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 
 import scraper
 
@@ -58,7 +59,7 @@ def clear_working_dir():
     delete_all_webms()
     for d in ('logs', '../WillBeams/media'):
         if os.path.exists(d):
-            os.removedirs(d)
+            shutil.rmtree(d)
 
 
 if __name__ == '__main__':
@@ -66,3 +67,5 @@ if __name__ == '__main__':
         func = globals().get(arg, None)
         if func:
             func()
+        else:
+            print('No {} function'.format(arg))

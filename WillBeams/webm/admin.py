@@ -1,20 +1,53 @@
 from django.contrib import admin
+from django.core.urlresolvers import reverse
 
 from webm.models import Webm, Tag, WebmTag, WebmUrl
+
+
+class WebmUrlInline(admin.StackedInline):
+    model = WebmUrl
+    extra = 0
 
 
 @admin.register(Webm)
 class WebmAdmin(admin.ModelAdmin):
     fields = ['video', 'thumbnail', 'rating', 'nsfw']
-    readonly = ['md5', 'added']
+    readonly_fields = ('md5', 'added')
     list_display = [
         'thumbnail_img', 'rating', 'md5', 'is_safe_for_work', 'added']
     ordering = ['-rating']
 
+    inlines = [WebmUrlInline]
+
+    def is_safe_for_work(self, obj):
+        return not obj.nsfw
+
+    is_safe_for_work.boolean = True
+    is_safe_for_work.short_description = 'Safe for work?'
+
+    def thumbnail_img(self, obj):
+        html = '<img style="max-width:100%%; \
+                max-height:100%%; width:200px;" \
+                src="%s" alt="No thumb">'
+        try:
+            return html % obj.thumbnail.url
+        except ValueError:
+            return html % ''
+
+    thumbnail_img.allow_tags = True
+
 
 @admin.register(WebmUrl)
 class WebmUrlAdmin(admin.ModelAdmin):
-    list_display = ['webm', 'url']
+    list_display = ['webm', 'url', 'webm_model']
+    ordering = ['webm__rating']
+    search_fields = ['webm__thumbnail']
+
+    def webm_model(self, obj):
+        webm = reverse('admin:webm_webm_change', args=[obj.webm.pk])
+        return '<a href="{}">Webm</a>'.format(webm)
+
+    webm_model.allow_tags = True
 
 
 admin.site.register(Tag)

@@ -35,22 +35,5 @@ class Webm(models.Model):
     def decrease_rating(cls, md5):
         return cls._change_rating(md5, -1)
 
-    def is_safe_for_work(self):
-        return not self.nsfw
-
-    is_safe_for_work.boolean = True
-    is_safe_for_work.short_description = 'Safe for work?'
-
-    def thumbnail_img(self):
-        html = '<img style="max-width:100%%; \
-                max-height:100%%; width:200px;" \
-                src="%s" alt="No thumb">'
-        try:
-            return html % self.thumbnail.url
-        except ValueError:
-            return html % ''
-
-    thumbnail_img.allow_tags = True
-
     def __str__(self):
         return self.thumbnail.url.split('/')[-1]
