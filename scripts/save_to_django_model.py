@@ -27,6 +27,9 @@ class DownloadToModel(scraper.Downloader):
         self._webm_url = None
         super().__init__(*args, **kwargs)
 
+    def _add_webm_url(self):
+        WebmUrl.objects.create(webm=self._webm_obj, url=self._webm_url)
+
     def _download(self, data):
         self._webm_url, md5 = data[0], data[-1]
         try:
@@ -34,6 +37,7 @@ class DownloadToModel(scraper.Downloader):
             result = None, None, None
             scraper.inform(
                 'Increase rating {}'.format(self._webm_url), level=scraper.WARNING)
+            self._add_webm_url()
         except Webm.DoesNotExist:
             self._webm_obj = Webm(md5=md5)
             result = super()._download(data)
@@ -64,7 +68,7 @@ class DownloadToModel(scraper.Downloader):
             self._webm_obj = Webm.objects.get(md5=self._webm_obj.md5)
             scraper.inform(e, level=scraper.WARNING)
         finally:
-            WebmUrl.objects.create(webm=self._webm_obj, url=self._webm_url)
+            self._add_webm_url()
 
     def work(self, *args, **kwargs):
         return super().work(self.save)

@@ -42,13 +42,8 @@ def sort_webms_by_md5():
                 except ValueError:
                     continue
                 md5s[m].append(t)
-            # for k, v in md5s.items():
-                # if k == '54c8c0aa9e6c461c2b50e0802e45dd22':
-                    # print(k)
-                # print('{}\t{}'.format(k, '\n\t'.join(map(str, v))))
-            # print(md5s['54c8c0aa9e6c461c2b50e0802e45dd22'])
-            for x in md5s['54c8c0aa9e6c461c2b50e0802e45dd22']:
-                print(x)
+            for k, v in md5s.items():
+                print('{}\t{}'.format(k, '\n\t'.join(map(str, v))))
 
 
 def delete_all_webms():
