@@ -85,6 +85,7 @@ class Connection(object):
     def _set_headers(self):
         self._headers = HEADERS
 
+    @_repeat_on(NETWORK_ERRORS)
     def _get_response(self, request):
         inform('Requesting {}'.format(request), level=INFO)
         self._conn.request('GET', request, headers=self._headers)
@@ -92,7 +93,6 @@ class Connection(object):
         inform('Response is {}: {}'.format(resp.status, resp.reason), level=INFO)
         return resp
 
-    @_repeat_on(NETWORK_ERRORS)
     def get_response(self, request):
         return self._get_response(request)
 
@@ -117,7 +117,6 @@ class Connection(object):
 
         return resp.status, json_data
 
-    @_repeat_on(NETWORK_ERRORS)
     def get_file(self, request):
         return self._get_response(request).read()
 
