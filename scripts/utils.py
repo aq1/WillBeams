@@ -1,5 +1,6 @@
 import os
 import sys
+import collections
 import shutil
 
 import scraper
@@ -13,7 +14,7 @@ def get_stats():
                 md5s = []
                 for i, line in enumerate(f.readlines(), 1):
                     try:
-                        t, w, m = line.split(';')
+                        w, t, m = line.split(';')
                     except ValueError:
                         continue
 
@@ -29,6 +30,25 @@ def get_stats():
         except Exception as e:
             print(e)
             continue
+
+
+def sort_webms_by_md5():
+    for log_file in os.listdir(scraper.LOGS_FOLDER):
+        with open(os.path.join(scraper.LOGS_FOLDER, log_file), 'r') as f:
+            md5s = collections.defaultdict(list)
+            for i, line in enumerate(f.readlines(), 1):
+                try:
+                    w, t, m = line[:-1].split(';')
+                except ValueError:
+                    continue
+                md5s[m].append(t)
+            # for k, v in md5s.items():
+                # if k == '54c8c0aa9e6c461c2b50e0802e45dd22':
+                    # print(k)
+                # print('{}\t{}'.format(k, '\n\t'.join(map(str, v))))
+            # print(md5s['54c8c0aa9e6c461c2b50e0802e45dd22'])
+            for x in md5s['54c8c0aa9e6c461c2b50e0802e45dd22']:
+                print(x)
 
 
 def delete_all_webms():
@@ -57,9 +77,11 @@ def delete_all_webms():
 
 def clear_working_dir():
     delete_all_webms()
-    for d in ('logs', '../WillBeams/media'):
-        if os.path.exists(d):
-            shutil.rmtree(d)
+    project_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    for d in ('scripts/logs', 'WillBeams/media'):
+        path = os.path.join(project_dir, d)
+        if os.path.exists(path):
+            shutil.rmtree(path)
 
 
 if __name__ == '__main__':
@@ -67,5 +89,3 @@ if __name__ == '__main__':
         func = globals().get(arg, None)
         if func:
             func()
-        else:
-            print('No {} function'.format(arg))

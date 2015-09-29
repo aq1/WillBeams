@@ -18,6 +18,7 @@ class WebmAdmin(admin.ModelAdmin):
     ordering = ['-rating']
 
     inlines = [WebmUrlInline]
+    search_fields = ['md5', 'thumbnail']
 
     def is_safe_for_work(self, obj):
         return not obj.nsfw
