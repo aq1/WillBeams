@@ -42,7 +42,7 @@ class WebmAdmin(admin.ModelAdmin):
 class WebmUrlAdmin(admin.ModelAdmin):
     list_display = ['webm', 'url', 'webm_model']
     ordering = ['webm__rating']
-    search_fields = ['webm__thumbnail']
+    search_fields = ['webm__thumbnail', 'webm__md5']
 
     def webm_model(self, obj):
         webm = reverse('admin:webm_webm_change', args=[obj.webm.pk])
