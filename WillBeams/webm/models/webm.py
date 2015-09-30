@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.db import models
 from django.db.models import F
 
+from . import Tag
+
 
 def get_media_folder(instance, filename):
     today = timezone.now().strftime('%Y/%m/%d/%H/%M')
@@ -15,6 +17,7 @@ class Webm(models.Model):
         upload_to=get_media_folder, blank=True, default='')
     thumbnail = models.ImageField(upload_to=get_media_folder)
     rating = models.IntegerField(default=0)
+    tags = models.ManyToManyField(Tag)
     md5 = models.CharField(unique=True, max_length=32,
                            editable=False)
     nsfw = models.BooleanField(default=False)

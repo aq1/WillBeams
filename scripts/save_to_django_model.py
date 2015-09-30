@@ -16,7 +16,7 @@ from django.db.utils import IntegrityError
 os.environ["DJANGO_SETTINGS_MODULE"] = 'WillBeams.settings'
 django.setup()
 
-from webm.models import Webm, get_media_folder, WebmUrl, Section, WebmSection
+from webm.models import Webm, get_media_folder, WebmUrl, Tag
 import scraper
 
 
@@ -47,14 +47,13 @@ class DownloadToModel(scraper.Downloader):
         WebmUrl.objects.create(webm=self._webm_obj, url=self._webm_url)
 
     @_except_unique_violation
-    def _add_webm_section(self):
-        section, _ = Section.objects.get_or_create(name=self._get_section(self._webm_url))
-        if section:
-            WebmSection.objects.create(webm=self._webm_obj, section=section)
+    def _add_webm_section_tag(self):
+        tag, _ = Tag.objects.get_or_create(name=self._get_section(self._webm_url))
+        self._webm_obj.tags.add(tag)
 
     def _add_releated_info(self):
         self._add_webm_url()
-        self._add_webm_section()
+        self._add_webm_section_tag()
 
     def _download(self, data):
         self._webm_url, md5 = data[0], data[-1]
