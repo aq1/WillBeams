@@ -292,11 +292,15 @@ class Logger:
         self._time = time.time()
         self._wait_time = 5 * 1
 
-        if not os.path.exists(LOGS_FOLDER):
-            os.makedirs(LOGS_FOLDER)
+        self._file = open(self._get_log_path(), 'w')
 
-        self._file = open(
-            datetime.now().strftime(os.path.join(LOGS_FOLDER, '%Y %m %d %H-%M.txt')), 'w')
+    def _get_log_path(self):
+        directory = os.path.join(os.path.realpath(os.path.dirname(__file__)), LOGS_FOLDER)
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        return os.path.join(directory, datetime.now().strftime('%Y %m %d %H-%M.txt'))
 
     def work(self):
         while True:

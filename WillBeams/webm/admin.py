@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 
-from webm.models import Webm, Tag, WebmTag, WebmUrl, WebmSection
+from webm.models import Webm, Tag, WebmUrl
 
 
 class WebmUrlInline(admin.StackedInline):
@@ -11,7 +11,7 @@ class WebmUrlInline(admin.StackedInline):
 
 @admin.register(Webm)
 class WebmAdmin(admin.ModelAdmin):
-    fields = ['video', 'thumbnail', 'rating', 'nsfw']
+    fields = ['video', 'thumbnail', 'rating', 'nsfw', 'tags']
     readonly_fields = ('md5', 'added')
     list_display = [
         'thumbnail_img', 'rating', 'md5', 'is_safe_for_work', 'added']
@@ -52,5 +52,3 @@ class WebmUrlAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Tag)
-admin.site.register(WebmTag)
-admin.site.register(WebmSection)
