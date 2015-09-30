@@ -15,5 +15,5 @@ class WebmTag(models.Model):
 
     @classmethod
     def get_top_tags(cls, count=10):
-        return cls.objects.values('tag__name').annotate(count=Count('webm')).order_by('-count')[:count]
+        return cls.objects.values('tag__name').annotate(count=models.Count('webm')).order_by('-count')[:count]
 
