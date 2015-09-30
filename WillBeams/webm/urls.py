@@ -1,7 +1,7 @@
-from django.conf.urls import url
+from django.conf.urls import include, url
 from rest_framework import routers
 
-from .views import index
+from . import views
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
