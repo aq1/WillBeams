@@ -40,3 +40,7 @@ class Webm(models.Model):
 
     def __str__(self):
         return self.thumbnail.url.split('/')[-1]
+
+    class Meta:
+        ordering = ['-rating']
+
