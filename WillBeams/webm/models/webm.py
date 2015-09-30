@@ -1,12 +1,12 @@
 import os
-from datetime import datetime
+from django.utils import timezone
 
 from django.db import models
 from django.db.models import F
 
 
 def get_media_folder(instance, filename):
-    today = datetime.now().strftime('%Y/%m/%d/%H/%M')
+    today = timezone.now().strftime('%Y/%m/%d/%H/%M')
     return '/'.join((os.path.splitext(filename)[-1][1:], today))
 
 
