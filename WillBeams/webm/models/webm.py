@@ -43,4 +43,3 @@ class Webm(models.Model):
 
     class Meta:
         ordering = ['-rating']
-

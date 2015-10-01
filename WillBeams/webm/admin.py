@@ -11,8 +11,7 @@ class WebmUrlInline(admin.StackedInline):
 
 @admin.register(Webm)
 class WebmAdmin(admin.ModelAdmin):
-    fields = ['video', 'thumbnail', 'rating', 'nsfw', 'tags']
-    readonly_fields = ('md5', 'added')
+    readonly_fields = ['md5', 'added']
     list_display = [
         'thumbnail_img', 'rating', 'md5', 'is_safe_for_work', 'added']
     ordering = ['-rating']
