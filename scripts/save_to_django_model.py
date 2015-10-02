@@ -48,7 +48,8 @@ class DownloadToModel(scraper.Downloader):
 
     @_except_unique_violation
     def _add_webm_section_tag(self):
-        tag, _ = Tag.objects.get_or_create(name=self._get_section(self._webm_url))
+        tag, _ = Tag.objects.get_or_create(
+            name=self._get_section(self._webm_url))
         self._webm_obj.tags.add(tag)
 
     def _add_releated_info(self):
@@ -57,14 +58,14 @@ class DownloadToModel(scraper.Downloader):
 
     def _download(self, data):
         self._webm_url, md5 = data[0], data[-1]
-        try:
-            self._webm_obj = Webm.increase_rating(md5)
+        self._webm_obj, created = Webm.get_or_increase_rating(md5)
+
+        if not created:
             result = None, None, None
             scraper.inform(
                 'Increase rating {}'.format(self._webm_url), level=scraper.WARNING)
             self._add_releated_info()
-        except Webm.DoesNotExist:
-            self._webm_obj = Webm(md5=md5)
+        else:
             result = super()._download(data)
 
         return result
