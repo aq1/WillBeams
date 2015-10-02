@@ -5,6 +5,20 @@ import shutil
 
 import scraper
 
+import os
+import sys
+
+import django
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(os.path.join(BASE_DIR, 'WillBeams'))
+sys.path.append(BASE_DIR)
+
+os.environ["DJANGO_SETTINGS_MODULE"] = 'WillBeams.settings'
+django.setup()
+
+from webm.models import Webm
+
 
 def get_stats():
     for log_file in os.listdir(scraper.LOGS_FOLDER):
@@ -53,21 +67,11 @@ def delete_all_webms():
         print('Didn\'t do anything.')
         exit()
 
-    import os
-    import sys
-
-    import django
-
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    sys.path.append(os.path.join(BASE_DIR, 'WillBeams'))
-    sys.path.append(BASE_DIR)
-
-    os.environ["DJANGO_SETTINGS_MODULE"] = 'WillBeams.settings'
-    django.setup()
-
-    from webm.models import Webm
-
     Webm.objects.all().delete()
+
+
+def count_webms():
+    print(Webm.objects.count())
 
 
 def clear_working_dir():
