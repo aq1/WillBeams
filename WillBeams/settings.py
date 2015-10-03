@@ -26,6 +26,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'webm',
     'rest_framework',
+    'newapp',
 )
 
 MIDDLEWARE_CLASSES = (
