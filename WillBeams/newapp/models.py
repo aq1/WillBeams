@@ -2,6 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+
 class Video(models.Model):
     url = models.SlugField(unique=True)
     length = models.IntegerField()  # length of video in seconds
@@ -12,6 +16,8 @@ class Video(models.Model):
     nsfw = models.ManyToManyField(User, through='UserNsfw', related_name='video_nsfw')
     favourite = models.ManyToManyField(User, through='UserFavourite', related_name='video_favourite')
     like = models.ManyToManyField(User, through='UserLike', related_name='video_like')
+
+    tag = models.ManyToManyField(Tag, through='TagVideo')  # global tags, not user-specific
 
 
 class View(models.Model):
@@ -51,9 +57,13 @@ class UserLike(models.Model):
         unique_together = ('user', 'video')
 
 
-class Tag(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    video = models.ManyToManyField(Video)  # global tags for everyone
+class TagVideo(models.Model):
+    tag = models.ForeignKey(Tag)
+    video = models.ForeignKey(Video)
+    hard = models.BooleanField(default=False)  # True for tags not derived from UserTag
+
+    class Meta:
+        unique_together = ('tag', 'video')
 
 
 class UserTagVideo(models.Model):
