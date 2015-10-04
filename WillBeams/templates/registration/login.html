@@ -1,28 +1,26 @@
-{% extends "base.html" %}
+{% extends "registration/baseform.html" %}
 {% load bootstrap3 %}
 
-{% block content %}
-<div class="row">
-  <div class="col-xs-12 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
-    <h1>Вход</h1>
+{% block formcontent %}
+<h1>Вход</h1>
 
-    {% if next %}
-    {% if user.is_authenticated %}
-      {% bootstrap_alert "Ваш аккаунт не имеет достаточно прав чтобы просмативать эту страницу. Войдите под другим аккаунтом, который имеет достаточно прав" %}
-    {% else %}
-      {% bootstrap_alert "Пожалуйста войдите чтобы просматривать эту страницу" %}
-    {% endif %}
-    {% endif %}
+{% if next %}
+{% if user.is_authenticated %}
+  {% bootstrap_alert "Ваш аккаунт не имеет достаточно прав чтобы просмативать эту страницу. Войдите под другим аккаунтом, который имеет достаточно прав" %}
+{% else %}
+  {% bootstrap_alert "Пожалуйста войдите чтобы просматривать эту страницу" %}
+{% endif %}
+{% endif %}
 
-    <form action="{% url "django.contrib.auth.views.login" %}{% if next %}?next={{ next|urlencode }}{% endif %}" method="post" class="form">
-      {% csrf_token %}
-      {% bootstrap_form form show_label=False %}
-      {% buttons %}
-      <button type="submit" class="btn btn-primary">
-        {% bootstrap_icon "star" %} OK
-      </button>
-      {% endbuttons %}
-    </form>
-  </div>
-</div>
-{% endblock content %}
+<form action="{% url "django.contrib.auth.views.login" %}{% if next %}?next={{ next|urlencode }}{% endif %}" method="post" class="form">
+  {% csrf_token %}
+  {% bootstrap_form form show_label=False %}
+  {% buttons %}
+  <button type="submit" class="btn btn-primary">
+    {% bootstrap_icon "star" %} OK
+  </button>
+  {% endbuttons %}
+</form>
+
+<a href="{% url "django.contrib.auth.views.password_reset" %}">Я долбоёб, забыл пароль</a>
+{% endblock formcontent %}
