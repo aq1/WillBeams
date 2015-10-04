@@ -25,8 +25,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrap3',
-    'webm',
-    'rest_framework',
+    # 'webm',
+    # 'rest_framework',
     'newapp',
 )
 
