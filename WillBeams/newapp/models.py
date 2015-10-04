@@ -7,7 +7,9 @@ class Tag(models.Model):
 
 
 class Video(models.Model):
-    url = models.SlugField(unique=True)
+    video_file = models.FileField(upload_to='video')
+    preview_file = models.ImageField(upload_to='preview', null=True, blank=True)
+
     length = models.IntegerField()  # length of video in seconds
     add_time = models.DateTimeField(auto_now_add=True)
     nsfw_source = models.BooleanField(default=False)
