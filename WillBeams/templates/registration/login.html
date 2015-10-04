@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block content %}
+<div class="row">
+  <div class="col-xs-12 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
+    {% if next %}
+    {% if user.is_authenticated %}
+    <p>Your account doesn't have access to this page. To proceed,
+    please login with an account that has access.</p>
+    {% else %}
+    <p>Please login to see this page.</p>
+    {% endif %}
+    {% endif %}
+
+    <h1>Вход</h1>
+    <form action="{% url 'django.contrib.auth.views.login' %}" method="post" class="form">
+      {% csrf_token %}
+      {% bootstrap_form form show_label=False %}
+      {% buttons %}
+      <button type="submit" class="btn btn-primary">
+        {% bootstrap_icon "star" %} OK
+      </button>
+      {% endbuttons %}
+    </form>
+  </div>
+</div>
+{% endblock content %}
