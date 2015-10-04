@@ -3,4 +3,7 @@
 
 {% block content %}
 Глагне
+
+{% if user.is_authenticated %}Hello, {{ user.username }}.{% endif %}
+
 {% endblock content %}

@@ -1,9 +1,15 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
+from .forms import CustomUserCreationForm
+from django.contrib.auth import logout as auth_logout
 
 
 def index(request):
     return render(request, 'home.html')
+
+
+def logout(request):
+    auth_logout(request)
+    return redirect('newapp.views.index')
 
 
 def register_after(request):
@@ -12,12 +18,12 @@ def register_after(request):
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('newapp.views.register_after')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
 
     context = {
         'form': form,

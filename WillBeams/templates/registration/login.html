@@ -14,7 +14,7 @@
     {% endif %}
     {% endif %}
 
-    <form action="{% url "django.contrib.auth.views.login" %}" method="post" class="form">
+    <form action="{% url "django.contrib.auth.views.login" %}{% if next %}?next={{ next|urlencode }}{% endif %}" method="post" class="form">
       {% csrf_token %}
       {% bootstrap_form form show_label=False %}
       {% buttons %}
