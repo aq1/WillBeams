@@ -33,4 +33,4 @@ def add_prepared_video(video_filename, video_length, preview_filename=None, nsfw
 
     for tname in ([] if tags is None else tags):
         tag, _ = Tag.objects.get_or_create(name=tname)
-        video.tagvideo_set.create(tag=tag)
+        video.tagvideo_set.create(tag=tag, hard=True)
