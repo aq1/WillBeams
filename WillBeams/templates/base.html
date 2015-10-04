@@ -39,16 +39,14 @@
             <!-- <button type="submit" class="btn btn-default">Submit</button> -->
           </form>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="#">Регистрация</a></li>
-            <li><a href="{% url 'django.contrib.auth.views.login' %}">Вход</a></li>
+            <li><a href="{% url "newapp.views.register" %}">Регистрация</a></li>
+            <li><a href="{% url "django.contrib.auth.views.login" %}">Вход</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Профиль <span class="caret"></span></a>
               <ul class="dropdown-menu">
-                <li><a href="#">Сменить пароль</a></li>
-                <li><a href="#">Another action</a></li>
-                <li><a href="#">Something else here</a></li>
+                <li><a href="{% url "django.contrib.auth.views.password_change" %}">Сменить пароль</a></li>
                 <li role="separator" class="divider"></li>
-                <li><a href="#">Separated link</a></li>
+                <li><a href="{% url "django.contrib.auth.views.logout" %}">Выход</a></li>
               </ul>
             </li>
           </ul>
