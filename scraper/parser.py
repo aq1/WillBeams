@@ -10,6 +10,8 @@ import threading
 
 from datetime import datetime
 
+import pika
+
 
 NETWORK_ERRORS = http.HTTPException, ConnectionError, OSError
 
@@ -40,8 +42,20 @@ CONSOLE_COLORS = {
     'UNDERLINE': '\033[4m',
 }
 
+SECTIONS = ['a', 'abu', 'au', 'b', 'bg', 'bi', 'biz', 'bo',
+            'c', 'cg', 'd', 'di', 'diy', 'e', 'em', 'es',
+            'fa', 'fag', 'fd', 'fet', 'fg', 'fiz', 'fl',
+            'ftb', 'fur', 'ga', 'gd', 'gg', 'h', 'hc',
+            'hh', 'hi', 'ho', 'hw', 'ja', 'ma', 'me',
+            'media', 'mg', 'mlp', 'mmo', 'mo', 'moba',
+            'mobi', 'mov', 'mu', 'mus', 'ne', 'p', 'pa',
+            'po', 'pr', 'psy', 'r', 'ra', 're', 'rf', 's',
+            'sci', 'sex', 'sf', 'sn', 'soc', 'sp', 'spc',
+            't', 'tes', 'trv', 'tv', 'un', 'vg', 'vn', 'w',
+            'web', 'wh', 'wm', 'wn', 'wp', 'wr', 'wrk']
 
 DONE = 1
+WORKERS = 5
 
 
 def inform(msg, level=10):
@@ -203,10 +217,10 @@ def get_webms(url=BOARD_URL, section=DEFAULT_SECTION):
     return webms
 
 
-def work(url, sections, webm_q, task_q):
+def work(url, sections, task_q, callback):
     for s in sections:
         for w in get_webms(url, s):
-            webm_q.put(w)
+            callback(w)
 
     task_q.put((DONE, sections))
 
@@ -215,62 +229,44 @@ def chunk_list(l, size):
     yield from [l[i:i + size] for i in range(0, len(l), size)]
 
 
-if __name__ == '__main__':
+def print_to_console(webm):
+    print(webm)
 
-    sections = ['a', 'abu', 'au', 'b', 'bg', 'bi', 'biz', 'bo',
-                'c', 'cg', 'd', 'di', 'diy', 'e', 'em', 'es',
-                'fa', 'fag', 'fd', 'fet', 'fg', 'fiz', 'fl',
-                'ftb', 'fur', 'ga', 'gd', 'gg', 'h', 'hc',
-                'hh', 'hi', 'ho', 'hw', 'ja', 'ma', 'me',
-                'media', 'mg', 'mlp', 'mmo', 'mo', 'moba',
-                'mobi', 'mov', 'mu', 'mus', 'ne', 'p', 'pa',
-                'po', 'pr', 'psy', 'r', 'ra', 're', 'rf', 's',
-                'sci', 'sex', 'sf', 'sn', 'soc', 'sp', 'spc',
-                't', 'tes', 'trv', 'tv', 'un', 'vg', 'vn', 'w',
-                'web', 'wh', 'wm', 'wn', 'wp', 'wr', 'wrk']
 
-    url = BOARD_URL
+def put_into_queue(webm):
+    pass
 
-    workers = 5
-    webm_q = queue.Queue()
-    task_q = queue.Queue()
-    start = time.time()
 
-    for sections_chunk in chunk_list(sections, len(sections) // workers):
+def start_threads(task_q):
+    for sections_chunk in chunk_list(SECTIONS, len(SECTIONS) // WORKERS):
         t = threading.Thread(
-            target=work, args=(url, sections_chunk, webm_q, task_q))
+            target=work, args=(url, sections_chunk, task_q))
         t.start()
         print('Thread started')
 
+
+def wait_for_all_threads_to_be_done(task_q):
     done_workers = 0
 
-    while done_workers != workers:
+    while done_workers != WORKERS:
         signal = task_q.get()
         if signal[0] == DONE:
             print(signal[1], '- Done')
             done_workers += 1
 
-    end = int(time.time() - start)
-    m, s = end // 60, end % 60
-    print('Threaded version: {}m {}s'.format(m, s))
+
+if __name__ == '__main__':
+
+    url = BOARD_URL
+    task_q = queue.Queue()
 
     start = time.time()
-    for s in sections:
-        get_webms(url, s)
+    start_threads(task_q)
+    wait_for_all_threads_to_be_done(task_q)
     end = int(time.time() - start)
-    m, s = end // 60, end % 60
-    print('Single thread version: {}m {}s'.format(m, s))
 
     w = 0
     webms = []
-    directory = os.path.realpath(os.path.dirname(__file__))
-    while not webm_q.empty():
-        webms.append(webm_q.get())
-        w += 1
 
-    with open(os.path.join(directory, 'webms.txt'), 'w') as f:
-        f.write('\n'.join(map(str, webms)))
-
-    end = int(time.time() - start)
     m, s = end // 60, end % 60
     print('Total: {}. Time: {}m {}s'.format(w, m, s))
