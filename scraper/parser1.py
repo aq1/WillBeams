@@ -259,6 +259,12 @@ def check_task_q(task_q):
 
 def work(task_q, url=BOARD_URL, sections=DEFAULT_SECTIONS, callback=print_output):
     connection = Connection(url)
+
+    rabbitmq = pika.BlockingConnection(pika.ConnectionParameters(
+        'localhost'))
+    channel = rabbitmq.channel()
+    channel.queue_declare(queue='webm')
+
     catalogs = [Catalog(section=section) for section in sections]
     threads = []
 
@@ -272,17 +278,17 @@ def work(task_q, url=BOARD_URL, sections=DEFAULT_SECTIONS, callback=print_output
             check_task_q(task_q)
 
             for webm in thread.get_webms(connection.get_json):
-                callback(webm)
+                callback(channel, webm)
 
 
 def chunk_list(l, size):
     yield from [l[i:i + size] for i in range(0, len(l), size)]
 
 
-def start_threads(task_q, workers, url, sections):
+def start_threads(task_q, workers, url, sections, callback):
     for sections_chunk in chunk_list(sections, len(sections) // workers):
         t = threading.Thread(
-            target=work, args=(task_q, url, sections_chunk))
+            target=work, args=(task_q, url, sections_chunk, callback))
         t.start()
         inform('Thread started', level=IMPORTANT_INFO)
 
@@ -292,9 +298,15 @@ def stop_threads(task_q, workers):
         task_q.put(STOP_SIGNAL)
 
 
+def put_into_rabbitmq(channel, webm):
+    channel.basic_publish(exchange='',
+                          routing_key='webm',
+                          body=str(webm))
+
+
 if __name__ == '__main__':
     task_q = queue.Queue()
-    start_threads(task_q, WORKERS, BOARD_URL, SECTIONS)
+    start_threads(task_q, WORKERS, BOARD_URL, SECTIONS, callback=put_into_rabbitmq)
     try:
         while True:
             pass
