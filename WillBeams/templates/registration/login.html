@@ -1,0 +1,26 @@
+{% extends "registration/baseform.html" %}
+{% load bootstrap3 %}
+
+{% block formcontent %}
+<h1>Вход</h1>
+
+{% if next %}
+{% if user.is_authenticated %}
+  {% bootstrap_alert "Ваш аккаунт не имеет достаточно прав чтобы просмативать эту страницу. Войдите под другим аккаунтом, который имеет достаточно прав" %}
+{% else %}
+  {% bootstrap_alert "Пожалуйста войдите чтобы просматривать эту страницу" %}
+{% endif %}
+{% endif %}
+
+<form action="{% url "django.contrib.auth.views.login" %}{% if next %}?next={{ next|urlencode }}{% endif %}" method="post" class="form">
+  {% csrf_token %}
+  {% bootstrap_form form show_label=False %}
+  {% buttons %}
+  <button type="submit" class="btn btn-primary">
+    {% bootstrap_icon "star" %} OK
+  </button>
+  {% endbuttons %}
+</form>
+
+<a href="{% url "django.contrib.auth.views.password_reset" %}">Я долбоёб, забыл пароль</a>
+{% endblock formcontent %}

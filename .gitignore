@@ -67,3 +67,4 @@ WillBeams/local_settings.py
 n.py
 scripts/logs/
 logs/
+.pip
