@@ -19,18 +19,18 @@ if not apps.ready:
 
 
 from django.core.files import File
-from newapp.models import Video, Tag
+from newapp.models import Webm, Tag
 
 
 def add_prepared_video(video_filename, video_length, preview_filename=None, nsfw_source=False, tags=None):
-    video = Video()
-    video.video_file = File(open(video_filename, 'rb'))
+    webm = Webm()
+    webm.video = File(open(video_filename, 'rb'))
     video.length = video_length
     if preview_filename is not None:
-        video.preview_file = File(open(preview_filename, 'rb'))
-    video.nsfw_source = nsfw_source
-    video.save()
+        webm.thumb = File(open(preview_filename, 'rb'))
+    webm.nsfw_source = nsfw_source
+    webm.save()
 
     for tname in ([] if tags is None else tags):
         tag, _ = Tag.objects.get_or_create(name=tname)
-        video.tagvideo_set.create(tag=tag, hard=True)
+        webm.tagvideo_set.create(tag=tag, hard=True)
