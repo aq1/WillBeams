@@ -57,7 +57,7 @@ def sort_webms_by_md5():
                     continue
                 md5s[m].append(t)
             for k, v in md5s.items():
-                print('{}\t{}'.format(k, '\n\t'.join(map(str, v))))
+                print('{}\n\t{}'.format(k, '\n\t'.join(map(str, v))))
 
 
 def delete_all_webms():

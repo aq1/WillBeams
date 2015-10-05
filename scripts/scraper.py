@@ -31,7 +31,7 @@ DOWNLOADERS = 2
 SEARCHERS = 2
 STOP_SIGNAL = (None, None, None)
 INFO, WARNING, ERROR = 3, 2, 1
-VERBOSITY_LEVEL = ERROR
+VERBOSITY_LEVEL = INFO
 
 
 CONSOLE_COLORS = {
@@ -190,7 +190,7 @@ class Catalog:
         try:
             threads = data['threads']
         except KeyError as e:
-            inform(e, threads.keys(), self._url, level=WARNING)
+            inform('{} {} {}'.format(e, threads.keys(), self._url), level=WARNING)
             return result
 
         for thread in threads:
@@ -238,7 +238,9 @@ class Searcher(Connection):
 
             webms = thread.get_webms(self.get_json)
             if webms is not None:
-                [self._file_Q.put(w) for w in webms]
+                for w in webms:
+                    self._file_Q.put(w)
+
                 self._thread_Q.put(thread)
 
 
@@ -261,6 +263,7 @@ class Downloader(Connection):
 
     def _download(self, data):
         webm, thumb, md5 = data
+        print('downloading', webm, md5)
         filename, webm_file, thumb_file = None, None, None
 
         if self._webms:
