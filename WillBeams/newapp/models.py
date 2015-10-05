@@ -6,72 +6,81 @@ class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
 
-class Video(models.Model):
-    video_file = models.FileField(upload_to='video')
-    preview_file = models.ImageField(upload_to='preview', null=True, blank=True)
+class Webm(models.Model):
+    video = models.FileField(upload_to='video')
+    thumb = models.ImageField(upload_to='preview', null=True, blank=True)
 
     length = models.IntegerField()  # length of video in seconds
-    add_time = models.DateTimeField(auto_now_add=True)
+    added = models.DateTimeField(auto_now_add=True)
     nsfw_source = models.BooleanField(default=False)
     blacklisted = models.BooleanField(default=False)
 
-    nsfw = models.ManyToManyField(User, through='UserNsfw', related_name='video_nsfw')
-    favourite = models.ManyToManyField(User, through='UserFavourite', related_name='video_favourite')
-    like = models.ManyToManyField(User, through='UserLike', related_name='video_like')
+    nsfw = models.ManyToManyField(
+        User, through='UserNsfw', related_name='webm_nsfw')
+    favourite = models.ManyToManyField(
+        User, through='UserFavourite', related_name='webm_favourite')
+    likes = models.ManyToManyField(
+        User, through='UserLike', related_name='webm_like')
 
-    tag = models.ManyToManyField(Tag, through='TagVideo')  # global tags, not user-specific
+    # global tags, not user-specific
+    tag = models.ManyToManyField(Tag, through='TagWebm')
 
 
 class View(models.Model):
-    user = models.ForeignKey(User, null=True, blank=True, default=None)  # nullable for anonymous viewers
+    # nullable for anonymous viewers
+    user = models.ForeignKey(User, null=True, blank=True, default=None)
     # TODO: test uniqueness allows duplication on NULL
-    video = models.ForeignKey(Video)
+    webm = models.ForeignKey(Webm)
 
-    start_time = models.DateTimeField(auto_now_add=True)  # time when user started to watch
-    active_time = models.IntegerField()  # number of seconds user actively watched
-    passive_time = models.IntegerField()  # number of seconds video played but user didn't watch it
+    # time when user started to watch
+    start_time = models.DateTimeField(auto_now_add=True)
+    # number of seconds user actively watched
+    active_time = models.IntegerField()
+    # number of seconds video played but user didn't watch it
+    passive_time = models.IntegerField()
 
 
 class UserNsfw(models.Model):
     user = models.ForeignKey(User, related_name='+')
-    video = models.ForeignKey(Video, related_name='+')
+    webm = models.ForeignKey(Webm, related_name='+')
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'video')
+        unique_together = ('user', 'webm')
 
 
 class UserFavourite(models.Model):
     user = models.ForeignKey(User, related_name='+')
-    video = models.ForeignKey(Video, related_name='+')
+    webm = models.ForeignKey(Webm, related_name='+')
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'video')
+        unique_together = ('user', 'webm')
 
 
 class UserLike(models.Model):
     user = models.ForeignKey(User, related_name='+')
-    video = models.ForeignKey(Video, related_name='+')
+    webm = models.ForeignKey(Webm, related_name='+')
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'video')
+        unique_together = ('user', 'webm')
 
 
-class TagVideo(models.Model):
+class TagWebm(models.Model):
     tag = models.ForeignKey(Tag)
-    video = models.ForeignKey(Video)
-    hard = models.BooleanField(default=False)  # True for tags not derived from UserTag
+    webm = models.ForeignKey(Webm)
+    # True for tags not derived from UserTag
+    hard = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('tag', 'video')
+        unique_together = ('tag', 'webm')
 
 
-class UserTagVideo(models.Model):
+class UserTagWebm(models.Model):
     user = models.ForeignKey(User)
     tag = models.ForeignKey(Tag)
-    video = models.ForeignKey(Video)
+    webm = models.ForeignKey(Webm)
 
     class Meta:
-        unique_together = ('user', 'tag', 'video')
+        unique_together = ('user', 'tag', 'webm')
