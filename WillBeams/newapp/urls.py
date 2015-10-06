@@ -7,7 +7,12 @@ urlpatterns = [
     url(r'^register/$', 'newapp.views.register'),
     url(r'^register/thankyou/$', 'newapp.views.register_after'),
 
-    url(r'^login/$', 'django.contrib.auth.views.login', name='login'),
+    url(
+        r'^login/$',
+        'django.contrib.auth.views.login',
+        {'extra_context': {'active': 'login'}},
+        name='login'
+    ),
     url(r'^logout/$', 'newapp.views.logout', name='logout'),
     url(
         r'^password_change/$',

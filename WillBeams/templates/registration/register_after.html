@@ -2,9 +2,11 @@
 {% load bootstrap3 %}
 
 {% block finalcontent %}
-<h1>Подтверди емайл, сука!11</h1>
+<h1>Спасибо за регистрацию</h1>
 <p>
-  Хотя можешь и не подтверждать. Оно пока ничего не отсылает, логиниться можно сразу, лол.
+  Теперь можно <a href="{% url "login" %}">войти</a>.
 </p>
-<a href="{% url "newapp.views.index" %}">Съебаццо на глагне</a>
+<p>
+  Или <a href="{% url "newapp.views.index" %}">вернуться на глагне</a>.
+</p>
 {% endblock finalcontent %}

@@ -18,7 +18,7 @@ def logout(request):
 
 
 def register_after(request):
-    return render(request, 'registration/register_after.html')
+    return render(request, 'registration/register_after.html', context={'active': 'register'})
 
 
 def register(request):
@@ -32,6 +32,7 @@ def register(request):
 
     context = {
         'form': form,
+        'active': 'register',
     }
     return render(request, 'registration/register.html', context=context)
 

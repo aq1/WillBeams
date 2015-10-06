@@ -45,8 +45,8 @@
           </form>
           <ul class="nav navbar-nav navbar-right">
             {% if not user.is_authenticated %}
-            <li><a href="{% url "newapp.views.register" %}">Регистрация</a></li>
-            <li><a href="{% url "django.contrib.auth.views.login" %}">Вход</a></li>
+            <li class="{% if active == "register" %}active{% endif %}"><a href="{% url "newapp.views.register" %}">Регистрация</a></li>
+            <li class="{% if active == "login" %}active{% endif %}"><a href="{% url "django.contrib.auth.views.login" %}">Вход</a></li>
             {% endif %}
             {% if user.is_authenticated %}
             <li class="dropdown">
