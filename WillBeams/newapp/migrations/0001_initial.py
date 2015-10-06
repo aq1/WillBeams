@@ -15,14 +15,22 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tag',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
                 ('name', models.CharField(unique=True, max_length=100)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='TagWebm',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
+                ('hard', models.BooleanField(default=False)),
+                ('tag', models.ForeignKey(to='newapp.Tag')),
             ],
         ),
         migrations.CreateModel(
             name='UserFavourite',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
                 ('time', models.DateTimeField(auto_now_add=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='+')),
             ],
@@ -30,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserLike',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
                 ('time', models.DateTimeField(auto_now_add=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='+')),
             ],
@@ -38,83 +46,93 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserNsfw',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
                 ('time', models.DateTimeField(auto_now_add=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='+')),
             ],
         ),
         migrations.CreateModel(
-            name='UserTagVideo',
+            name='UserTagWebm',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
                 ('tag', models.ForeignKey(to='newapp.Tag')),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
-            name='Video',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
-                ('url', models.SlugField(unique=True)),
-                ('length', models.IntegerField()),
-                ('add_time', models.DateTimeField(auto_now_add=True)),
-                ('nsfw_source', models.BooleanField(default=False)),
-                ('blacklisted', models.BooleanField(default=False)),
-                ('favourite', models.ManyToManyField(through='newapp.UserFavourite', to=settings.AUTH_USER_MODEL, related_name='video_favourite')),
-                ('like', models.ManyToManyField(through='newapp.UserLike', to=settings.AUTH_USER_MODEL, related_name='video_like')),
-                ('nsfw', models.ManyToManyField(through='newapp.UserNsfw', to=settings.AUTH_USER_MODEL, related_name='video_nsfw')),
-            ],
-        ),
-        migrations.CreateModel(
             name='View',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', auto_created=True, primary_key=True, serialize=False)),
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
                 ('start_time', models.DateTimeField(auto_now_add=True)),
                 ('active_time', models.IntegerField()),
                 ('passive_time', models.IntegerField()),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, null=True, default=None, blank=True)),
-                ('video', models.ForeignKey(to='newapp.Video')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Webm',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
+                ('video', models.FileField(upload_to='video')),
+                ('thumb', models.ImageField(upload_to='preview', blank=True, null=True)),
+                ('length', models.IntegerField()),
+                ('added', models.DateTimeField(auto_now_add=True)),
+                ('nsfw_source', models.BooleanField(default=False)),
+                ('blacklisted', models.BooleanField(default=False)),
+                ('favourite', models.ManyToManyField(to=settings.AUTH_USER_MODEL, related_name='webm_favourite', through='newapp.UserFavourite')),
+                ('likes', models.ManyToManyField(to=settings.AUTH_USER_MODEL, related_name='webm_like', through='newapp.UserLike')),
+                ('nsfw', models.ManyToManyField(to=settings.AUTH_USER_MODEL, related_name='webm_nsfw', through='newapp.UserNsfw')),
+                ('tag', models.ManyToManyField(to='newapp.Tag', through='newapp.TagWebm')),
             ],
         ),
         migrations.AddField(
-            model_name='usertagvideo',
-            name='video',
-            field=models.ForeignKey(to='newapp.Video'),
+            model_name='view',
+            name='webm',
+            field=models.ForeignKey(to='newapp.Webm'),
+        ),
+        migrations.AddField(
+            model_name='usertagwebm',
+            name='webm',
+            field=models.ForeignKey(to='newapp.Webm'),
         ),
         migrations.AddField(
             model_name='usernsfw',
-            name='video',
-            field=models.ForeignKey(to='newapp.Video', related_name='+'),
+            name='webm',
+            field=models.ForeignKey(to='newapp.Webm', related_name='+'),
         ),
         migrations.AddField(
             model_name='userlike',
-            name='video',
-            field=models.ForeignKey(to='newapp.Video', related_name='+'),
+            name='webm',
+            field=models.ForeignKey(to='newapp.Webm', related_name='+'),
         ),
         migrations.AddField(
             model_name='userfavourite',
-            name='video',
-            field=models.ForeignKey(to='newapp.Video', related_name='+'),
+            name='webm',
+            field=models.ForeignKey(to='newapp.Webm', related_name='+'),
         ),
         migrations.AddField(
-            model_name='tag',
-            name='video',
-            field=models.ManyToManyField(to='newapp.Video'),
+            model_name='tagwebm',
+            name='webm',
+            field=models.ForeignKey(to='newapp.Webm'),
         ),
         migrations.AlterUniqueTogether(
-            name='usertagvideo',
-            unique_together=set([('user', 'tag', 'video')]),
+            name='usertagwebm',
+            unique_together=set([('user', 'tag', 'webm')]),
         ),
         migrations.AlterUniqueTogether(
             name='usernsfw',
-            unique_together=set([('user', 'video')]),
+            unique_together=set([('user', 'webm')]),
         ),
         migrations.AlterUniqueTogether(
             name='userlike',
-            unique_together=set([('user', 'video')]),
+            unique_together=set([('user', 'webm')]),
         ),
         migrations.AlterUniqueTogether(
             name='userfavourite',
-            unique_together=set([('user', 'video')]),
+            unique_together=set([('user', 'webm')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='tagwebm',
+            unique_together=set([('tag', 'webm')]),
         ),
     ]
