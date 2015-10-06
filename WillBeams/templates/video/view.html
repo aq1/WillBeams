@@ -4,11 +4,12 @@
 {% block content %}
 
 <div class="row">
-  <div class="col-xs-12 col-sm-8 col-sm-offset-2 video-view">
+  <div class="col-xs-12 video-view">
     <div class="panel panel-default">
-      <div class="ratio-box ratio4_3">
-        <div class="ratio-box-content test-thumb">
-        </div>
+      <div class="panel-body">
+        <video src="{{ webm.video.url }}" controls>
+          Your browser does not support the <code>video</code> element.
+        </video>
       </div>
     </div>
   </div>

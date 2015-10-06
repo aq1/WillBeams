@@ -13,8 +13,11 @@ body { padding-top: 70px; }
 .video-item > .panel {
     overflow: hidden;
 }
-.video-view > .panel {
-    overflow: hidden;
+.video-view .panel-body {
+    text-align: center;
+}
+.video-view video {
+    max-width: 100%;
 }
 
 
