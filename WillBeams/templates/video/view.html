@@ -15,4 +15,19 @@
   </div>
 </div>
 
+<div class="row">
+  <div class="col-xs-12 col-md-8 col-md-offset-2">
+    <nav>
+      <ul class="pager">
+        {% if prev %}
+        <li class="previous"><a href="{% url "newapp.views.video" vid=prev.pk %}">&larr; предыдущее</a></li>
+        {% endif %}
+        {% if next %}
+        <li class="next"><a href="{% url "newapp.views.video" vid=next.pk %}">следующее &rarr;</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+</div>
+
 {% endblock content %}

@@ -61,7 +61,7 @@ def abstract_videos(request, items, label, active, **kwargs):
 def new_videos(request):
     return abstract_videos(
         request,
-        Webm.objects.all().order_by('-added'),
+        Webm.objects.all().order_by('-added', '-id'),  # stable ordering
         'Новые',
         'new',
     )
@@ -99,4 +99,12 @@ def tag_videos(request, tag):
 
 def video(request, vid):
     webm = get_object_or_404(Webm, pk=vid)
-    return render(request, 'video/view.html', context={'webm': webm})
+    next_webm = Webm.objects.filter(added__lte=webm.added, id__lt=webm.pk)\
+        .order_by('-added', '-id').first()
+    prev_webm = Webm.objects.filter(added__gte=webm.added, id__gt=webm.pk)\
+        .order_by('added', 'id').first()
+    return render(request, 'video/view.html', context={
+        'webm': webm,
+        'next': next_webm,
+        'prev': prev_webm,
+    })
