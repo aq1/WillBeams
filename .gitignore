@@ -68,3 +68,4 @@ n.py
 scripts/logs/
 logs/
 .pip
+WillBeams/filldb.py
