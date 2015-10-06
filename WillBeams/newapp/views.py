@@ -5,6 +5,7 @@ from django.contrib.auth import logout as auth_logout
 
 from .models import Webm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.decorators import login_required
 
 
 def index(request):
@@ -37,9 +38,9 @@ def register(request):
 # Video views
 
 
-def new_videos(request):
+def abstract_videos(request, items, label, active):
     paginator = Paginator(
-        Webm.objects.all().order_by('-added'),
+        items,
         20
     )
     try:
@@ -49,5 +50,36 @@ def new_videos(request):
     except EmptyPage:
         webm_list = paginator.page(paginator.num_pages)
     return render(request, 'video/list.html', context={
-        'webm_list': webm_list
+        'webm_list': webm_list,
+        'label': label,
+        'active': active,
     })
+
+
+def new_videos(request):
+    return abstract_videos(
+        request,
+        Webm.objects.all().order_by('-added'),
+        'Новые',
+        'new',
+    )
+
+
+@login_required
+def liked_videos(request):
+    return abstract_videos(
+        request,
+        Webm.objects.filter(likes=request.user).order_by('-userlike__time'),
+        'Понравившиеся',
+        'liked',
+    )
+
+
+@login_required
+def favourite_videos(request):
+    return abstract_videos(
+        request,
+        Webm.objects.filter(favourite=request.user).order_by('-userfavourite__time'),
+        'Избранные',
+        'favourite',
+    )

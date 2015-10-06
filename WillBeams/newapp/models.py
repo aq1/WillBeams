@@ -51,7 +51,7 @@ class UserNsfw(models.Model):
 
 class UserFavourite(models.Model):
     user = models.ForeignKey(User, related_name='+')
-    webm = models.ForeignKey(Webm, related_name='+')
+    webm = models.ForeignKey(Webm, related_name='userfavourite')
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -60,7 +60,7 @@ class UserFavourite(models.Model):
 
 class UserLike(models.Model):
     user = models.ForeignKey(User, related_name='+')
-    webm = models.ForeignKey(Webm, related_name='+')
+    webm = models.ForeignKey(Webm, related_name='userlike')
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:

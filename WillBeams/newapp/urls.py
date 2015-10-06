@@ -51,4 +51,6 @@ urlpatterns = [
 
 urlpatterns += [
     url(r'^new/$', 'newapp.views.new_videos'),
+    url(r'^liked/$', 'newapp.views.liked_videos'),
+    url(r'^favourite/$', 'newapp.views.favourite_videos'),
 ]
