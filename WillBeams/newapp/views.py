@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 # from .forms import CustomUserCreationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import logout as auth_logout
@@ -88,7 +88,6 @@ def favourite_videos(request):
 
 
 def tag_videos(request, tag):
-    print(tag)
     return abstract_videos(
         request,
         Webm.objects.filter(tag__name=tag).order_by('-added'),
@@ -96,3 +95,8 @@ def tag_videos(request, tag):
         'tag',
         tag=tag
     )
+
+
+def video(request, vid):
+    webm = get_object_or_404(Webm, pk=vid)
+    return render(request, 'video/view.html', context={'webm': webm})

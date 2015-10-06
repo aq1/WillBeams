@@ -13,6 +13,9 @@ body { padding-top: 70px; }
 .video-item > .panel {
     overflow: hidden;
 }
+.video-view > .panel {
+    overflow: hidden;
+}
 
 
 
@@ -28,6 +31,7 @@ body { padding-top: 70px; }
 	padding-top: 100%; 	/* initial ratio of 1:1*/
 }
 .ratio-box-content{
+    display: block; /* for block links <a> */
     position: absolute;
     top: 0;
     left: 0;
