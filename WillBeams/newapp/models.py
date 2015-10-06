@@ -1,5 +1,14 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import User
+
+from django.utils import timezone
+
+
+def get_media_folder(instance, filename):
+    today = timezone.now().strftime('%Y/%m/%d/%H/%M')
+    return '/'.join((os.path.splitext(filename)[-1][1:], today))
 
 
 class Tag(models.Model):
@@ -7,8 +16,12 @@ class Tag(models.Model):
 
 
 class Webm(models.Model):
-    video = models.FileField(upload_to='video')
-    thumb = models.ImageField(upload_to='preview', null=True, blank=True)
+    video = models.FileField(upload_to=get_media_folder)
+    thumb = models.ImageField(upload_to=get_media_folder, null=True, blank=True)
+
+    md5 = models.CharField(unique=True, max_length=32,
+                           editable=False)
+    rating = models.IntegerField(default=0)
 
     length = models.IntegerField()  # length of video in seconds
     added = models.DateTimeField(auto_now_add=True)
