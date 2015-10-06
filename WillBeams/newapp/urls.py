@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from .hashtag import hashtag_regex_string
 
 
 urlpatterns = [
@@ -53,4 +54,5 @@ urlpatterns += [
     url(r'^new/$', 'newapp.views.new_videos'),
     url(r'^liked/$', 'newapp.views.liked_videos'),
     url(r'^favourite/$', 'newapp.views.favourite_videos'),
+    url(r'^tag/(?P<tag>{})/$'.format(hashtag_regex_string), 'newapp.views.tag_videos'),
 ]

@@ -38,7 +38,7 @@ def register(request):
 # Video views
 
 
-def abstract_videos(request, items, label, active):
+def abstract_videos(request, items, label, active, **kwargs):
     paginator = Paginator(
         items,
         20
@@ -49,11 +49,13 @@ def abstract_videos(request, items, label, active):
         webm_list = paginator.page(1)
     except EmptyPage:
         webm_list = paginator.page(paginator.num_pages)
-    return render(request, 'video/list.html', context={
+    context = {
         'webm_list': webm_list,
         'label': label,
         'active': active,
-    })
+    }
+    context.update(kwargs)
+    return render(request, 'video/list.html', context=context)
 
 
 def new_videos(request):
@@ -82,4 +84,15 @@ def favourite_videos(request):
         Webm.objects.filter(favourite=request.user).order_by('-userfavourite__time'),
         'Избранные',
         'favourite',
+    )
+
+
+def tag_videos(request, tag):
+    print(tag)
+    return abstract_videos(
+        request,
+        Webm.objects.filter(tag__name=tag).order_by('-added'),
+        'Тег ' + tag,
+        'tag',
+        tag=tag
     )

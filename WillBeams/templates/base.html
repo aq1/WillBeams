@@ -33,6 +33,9 @@
             <li class="{% if active == "liked" %}active{% endif %}"><a href="{% url "newapp.views.liked_videos" %}">Понравившиеся</a></li>
             <li class="{% if active == "favourite" %}active{% endif %}"><a href="{% url "newapp.views.favourite_videos" %}">Избранные</a></li>
             {% endif %}
+            {% if active == "tag" %}
+            <li class="active"><a href="{% url "newapp.views.tag_videos" tag=tag %}">Тег {{ tag }}</a></li>
+            {% endif %}
           </ul>
           <form class="navbar-form navbar-left" role="search">
             <div class="form-group">
