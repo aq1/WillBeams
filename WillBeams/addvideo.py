@@ -25,7 +25,7 @@ from newapp.models import Webm, Tag
 def add_prepared_video(video_filename, video_length, preview_filename=None, nsfw_source=False, tags=None):
     webm = Webm()
     webm.video = File(open(video_filename, 'rb'))
-    video.length = video_length
+    webm.length = video_length
     if preview_filename is not None:
         webm.thumb = File(open(preview_filename, 'rb'))
     webm.nsfw_source = nsfw_source
@@ -33,4 +33,4 @@ def add_prepared_video(video_filename, video_length, preview_filename=None, nsfw
 
     for tname in ([] if tags is None else tags):
         tag, _ = Tag.objects.get_or_create(name=tname)
-        webm.tagvideo_set.create(tag=tag, hard=True)
+        webm.tagwebm_set.create(tag=tag, hard=True)
