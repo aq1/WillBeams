@@ -14,7 +14,17 @@ urlpatterns = [
         {'template_name': 'registration/password_change.html'},
         name='password_change'
     ),
-    url(r'^password_change/done/$', 'django.contrib.auth.views.password_change_done', name='password_change_done'),
+    url(
+        r'^password_change/done/$',
+        'django.contrib.auth.views.password_change_done',
+        {'template_name': 'registration/password_change_done.html'},
+        name='password_change_done'
+    ),
+]
+
+
+# Append to urlpatterns to enable email logic
+[
     url(
         r'^password_reset/$',
         'django.contrib.auth.views.password_reset',
@@ -35,5 +45,4 @@ urlpatterns = [
         {'template_name': 'registration/password_reset_complete.html'},
         name='password_reset_complete'
     ),
-
 ]
