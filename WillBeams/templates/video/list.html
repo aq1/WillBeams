@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load bootstrap3 %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-xs-12">
+    <h1>Новые webm</h1>
+  </div>
+</div>
+
+<div class="row">
+  {% for webm in webm_list %}
+  <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 video-item">
+    <div class="panel panel-default">
+      <div class="ratio-box ratio4_3">
+        <div class="ratio-box-content {% if forloop.counter0|divisibleby:"3" %}default-thumb{% else %}test-thumb{% endif %}">
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row">
+  {% with list=webm_list %}
+  {% include "pagination.inc.html" %}
+  {% endwith %}
+</div>
+
+{% endblock content %}

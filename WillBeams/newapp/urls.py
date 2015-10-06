@@ -46,3 +46,9 @@ urlpatterns = [
         name='password_reset_complete'
     ),
 ]
+
+# Video lists
+
+urlpatterns += [
+    url(r'^new/$', 'newapp.views.new_videos'),
+]

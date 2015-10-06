@@ -1,0 +1,39 @@
+{% if list.paginator.num_pages > 1 %}
+<nav>
+  <ul class="pagination">
+    {% if list.has_previous %}
+    <li><a href="?page={{ list.previous_page_number }}">&larr; туда</a></li>
+    {% endif %}
+
+    {% if list.number > 4 %}
+      <li><a href="?page=1">1</a></li>
+    {% endif %}
+    {% if list.number > 5 %}
+      <li class="disabled"><span style="cursor: default !important;">&hellip;</span></li>
+    {% endif %}
+
+    {# http://stackoverflow.com/a/5759160/2399966 #}
+    {% for i in "xxx" %}
+      {% with n=list.number|add:"-3"|add:forloop.counter0 %}
+        {% if n >= 1 and n <= list.paginator.num_pages %}
+          <li><a href="?page={{ n }}">{{ n }}</a></li>
+        {% endif %}
+      {% endwith %}
+    {% endfor %}
+
+    <li class="active"><span>{{ list.number }}</span></li>
+
+    {% for i in "xxx" %}
+      {% with n=list.number|add:forloop.counter %}
+        {% if n >= 1 and n <= list.paginator.num_pages %}
+          <li><a href="?page={{ n }}">{{ n }}</a></li>
+        {% endif %}
+      {% endwith %}
+    {% endfor %}
+
+    {% if list.has_next %}
+    <li><a href="?page={{ list.next_page_number }}">сюда &rarr;</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
