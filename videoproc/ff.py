@@ -113,7 +113,7 @@ class FF(object):
             
         return ffinfo
 
-    def generate_thumbs(self, filename, minstep=1, count=1, thumbs_dir=os.path.abspath(THUMBS_DIR), width=-1, height=-1, relwidth=-1, relheight=-1):
+    def generate_thumbs(self, filename, minstep=1, count=1, thumbs_dir=os.path.abspath(THUMBS_DIR), width=-1, height=-1):
 
         ffinfo = self.get_file_info(filename, DEFAULT_FFPROBE_OPTIONS)
 
@@ -127,7 +127,7 @@ class FF(object):
         
         ss = step
 
-        args = [DEFAULT_FFMPEG_BIN, '-i', filename, '-ss', str(ss), '-vf', 'fps='+str(fps),  '-f', 'image2'] + DEFAULT_FFMPEG_OPTIONS + [cur_file+'_thumb_%d.jpg']
+        args = [DEFAULT_FFMPEG_BIN, '-i', filename, '-ss', str(ss), '-vf', 'fps='+str(fps), '-vf', 'scale='+str(width)+':'+str(height), '-f', 'image2'] + DEFAULT_FFMPEG_OPTIONS + [cur_file+'_thumb_%d.jpg']
 
         try:
             subprocess.call(args)        
