@@ -34,33 +34,33 @@ EMPTY_VIDEO = {
 EMPTY_AUDIO = {
                 'codec_name': None
                 }
-
+                
 
 class FFInfo(object):
-
+    
     def __init__(self, path, file_info):
-
+                  
         self.path = path
-
+        
         file_format = file_info['format']
-
+        
         videostreams = [ x for x in file_info['streams'] if x['codec_type']=='video' ]
         audiostreams = [ x for x in file_info['streams'] if x['codec_type']=='audio' ]
-
+        
         videostream = videostreams[0] if videostreams else EMPTY_VIDEO
         audiostream = audiostreams[0] if audiostreams else EMPTY_AUDIO
-
+        
         self.videostream = videostream
         self.audiostream = audiostream
-
-                self.videocodec = videostream['codec_name']
-                self.audiocodec = audiostream['codec_name']
-
+        
+        self.videocodec = videostream['codec_name']
+        self.audiocodec = audiostream['codec_name']
+        
         self.height = int(videostream['height'])
         self.width = int(videostream['width'])
         self.duration = float(file_format['duration'])
         self.filename = os.path.basename(file_format['filename'])
-
+        
 
 class FF(object):
 
@@ -87,50 +87,50 @@ class FF(object):
             self._store = lambda filename, file_info: ffstorage.store(filename, file_info)
         else:
             self._store = lambda x, y: None
-
+            
     def get_file_info(self, filename, options=DEFAULT_FFPROBE_OPTIONS):
 
         if not self._ffstorage is None and filename in self._ffstorage._storage:
             ffinfo = self._ffstorage.get(filename)
-                        return ffinfo
+            return ffinfo
 
         ff_options = [DEFAULT_FFPROBE_BIN, '-i', filename] + REQUIRED_FFPROBE_OPTIONS + options
-
+        
         try:
             file_info = json.loads(subprocess.check_output(ff_options).decode('utf-8'))
         except:
             pass
         ffinfo = FFInfo(filename, file_info)
-
-                return ffinfo
+                
+        return ffinfo
 
     def load_file_info(self, filename, options=DEFAULT_FFPROBE_OPTIONS):
 
-                ffinfo = self.get_file_info(filename, options)
+        ffinfo = self.get_file_info(filename, options)
 
         if not self._ffstorage is None:
-                        self._store(filename, ffinfo)
-
-                return ffinfo
+            self._store(filename, ffinfo)
+            
+        return ffinfo
 
     def generate_thumbs(self, filename, minstep=1, count=1, thumbs_dir=os.path.abspath(THUMBS_DIR), width=-1, height=-1, relwidth=-1, relheight=-1):
 
-                ffinfo = self.get_file_info(filename, DEFAULT_FFPROBE_OPTIONS)
+        ffinfo = self.get_file_info(filename, DEFAULT_FFPROBE_OPTIONS)
 
-                duration = int(ffinfo.duration)
+        duration = int(ffinfo.duration)
 
-                cur_file = os.path.join(thumbs_dir, ffinfo.filename[:-5])
-
+        cur_file = os.path.join(thumbs_dir, ffinfo.filename[:-5])
+        
         step = max(minstep, duration/(count))
-
+        
         fps = '1/'+str(step)
-
+        
         ss = step
 
         args = [DEFAULT_FFMPEG_BIN, '-i', filename, '-ss', str(ss), '-vf', 'fps='+str(fps),  '-f', 'image2'] + DEFAULT_FFMPEG_OPTIONS + [cur_file+'_thumb_%d.jpg']
 
         try:
-            subprocess.call(args)
+            subprocess.call(args)        
         except:
             print("ERROR CREATING THUMB")
 
@@ -138,11 +138,11 @@ class FF(object):
 class FFStorage(object):
 
     def __init__(self):
-
+        
         self._storage = {}
 
     def store(self, filename, ffinfo):
-
+        
         self._storage[filename] = ffinfo
 
     def get(self, filename):
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     ffstorage = FFStorage()
     ff = FF(ffstorage)
 
-        path = "/media/DATA/Downloads/Видео/103151009" if not platform.system() == 'Window' else "C:\\Users\\Andrew\\Downloads\\Видео\\103151009"
+    path = "/media/DATA/Downloads/Видео/103151009" if not platform.system() == 'Window' else "C:\\Users\\Andrew\\Downloads\\Видео\\103151009"
 
     webms = [ os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith('.webm') ]
     files = [ f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) ]
@@ -168,8 +168,8 @@ if __name__ == '__main__':
     last_time = clock.elapsed_time.milliseconds
 
     for webm in webms:
-                ff.load_file_info(webm)
-
+        ff.load_file_info(webm)
+        
     current_time = clock.elapsed_time.milliseconds
 
     delta_time = current_time - last_time
@@ -184,8 +184,8 @@ if __name__ == '__main__':
     last_time = clock.elapsed_time.milliseconds
 
     for webm in webms:
-                ff.generate_thumbs(webm)
-
+        ff.generate_thumbs(webm)
+        
     current_time = clock.elapsed_time.milliseconds
 
     delta_time = current_time - last_time
