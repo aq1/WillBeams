@@ -127,7 +127,9 @@ class FF(object):
         
         ss = step
 
-        args = [DEFAULT_FFMPEG_BIN, '-i', filename, '-ss', str(ss), '-vf', 'fps='+str(fps), '-vf', 'scale='+str(width)+':'+str(height), '-f', 'image2'] + DEFAULT_FFMPEG_OPTIONS + [cur_file+'_thumb_%d.jpg']
+        args = [DEFAULT_FFMPEG_BIN, '-i', filename, '-ss', str(ss), '-vf', 'fps='+str(fps)+', '+'scale='+str(width)+':'+str(height),  '-f', 'image2'] + DEFAULT_FFMPEG_OPTIONS + [cur_file+'_thumb_%d.jpg']
+
+        print(args)
 
         try:
             subprocess.call(args)        
@@ -158,7 +160,7 @@ if __name__ == '__main__':
 
     path = "/media/DATA/Downloads/Видео/103151009" if not platform.system() == 'Window' else "C:\\Users\\Andrew\\Downloads\\Видео\\103151009"
 
-    webms = [ os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith('.webm') ]
+    webms = [ os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith('.webm') ][0:3]
     files = [ f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) ]
 
     print(">>>LOAD FILES INFO")
@@ -184,7 +186,7 @@ if __name__ == '__main__':
     last_time = clock.elapsed_time.milliseconds
 
     for webm in webms:
-        ff.generate_thumbs(webm)
+        ff.generate_thumbs(webm, width=500, height=100)
         
     current_time = clock.elapsed_time.milliseconds
 
