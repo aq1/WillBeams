@@ -5,6 +5,10 @@ from django.contrib.auth.models import User
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
+    def __str__(self):
+        return self.name
+
+
 
 class Webm(models.Model):
     video = models.FileField(upload_to='video')
@@ -24,6 +28,12 @@ class Webm(models.Model):
 
     # global tags, not user-specific
     tag = models.ManyToManyField(Tag, through='TagWebm')
+
+    def __str__(self):
+        return self.thumb.url.split('/')[-1] if self.thumb else 'No thumbnail'
+
+    class Meta:
+        ordering = ['-added']
 
 
 class View(models.Model):

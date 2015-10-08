@@ -14,7 +14,7 @@
   <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 video-item">
     <div class="panel panel-default">
       <div class="ratio-box ratio4_3">
-        <a href="{% url "newapp.views.video" vid=webm.pk %}" class="ratio-box-content {% if forloop.counter0|divisibleby:"3" %}default-thumb{% else %}test-thumb{% endif %}"></a>
+        <a href="{% url "newapp.views.video" vid=webm.pk %}" class="ratio-box-content {% if forloop.counter0|divisibleby:"3" %}default-thumb{% else %}test-thumb{% endif %}"  style="background-image:url({{webm.thumb.url}});background-size:cover"></a>
       </div>
     </div>
   </div>
