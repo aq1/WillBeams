@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import platform
 import subprocess
 
@@ -25,7 +26,8 @@ DEFAULT_FFPROBE_OPTIONS = ['-show_format', '-show_streams']
 
 DEFAULT_FFMPEG_OPTIONS = ['-hide_banner', '-v', 'quiet', '-an']
 
-THUMBS_DIR = '/tmp/ram/'
+# ~THUMBS_DIR = '/tmp/'
+THUMBS_DIR = tempfile.TemporaryDirectory().name
 
 EMPTY_VIDEO = {
                 'height': 0,
@@ -181,7 +183,8 @@ def rate_dur(duration, count=1, cminstep=5):
 
 if __name__ == '__main__':
 
-    path = "/media/DATA/Downloads/Видео/103151009" if not platform.system() == 'Window' else "C:\\Users\\Andrew\\Downloads\\Видео\\103151009"
+    # ~path = "/media/DATA/Downloads/Видео/103151009" if not platform.system() == 'Window' else "C:\\Users\\Andrew\\Downloads\\Видео\\103151009"
+    path = sys.argv[1]
 
     webms = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith('.webm')][0:1]
     files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
