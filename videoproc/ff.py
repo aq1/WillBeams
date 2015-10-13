@@ -26,7 +26,6 @@ DEFAULT_FFPROBE_OPTIONS = ['-show_format', '-show_streams']
 
 DEFAULT_FFMPEG_OPTIONS = ['-hide_banner', '-v', 'quiet', '-an']
 
-# ~THUMBS_DIR = '/tmp/'
 THUMBS_DIR = tempfile.TemporaryDirectory().name
 
 EMPTY_VIDEO = {
@@ -78,14 +77,16 @@ def get_file_info(filename, options=DEFAULT_FFPROBE_OPTIONS):
     return file_info
 
 
-def generate_thumbs(filename,
+def generate_thumbs(
+                    filename,
                     minstep=1,
                     count=1,
                     thumbs_dir=os.path.abspath(THUMBS_DIR),
                     width=-1,
                     height=-1,
                     cwidth=0,
-                    cheight=0):
+                    cheight=0
+                    ):
 
     ffinfo = FFInfo(filename, get_file_info(filename, DEFAULT_FFPROBE_OPTIONS))
 
@@ -95,14 +96,9 @@ def generate_thumbs(filename,
 
     time_params = rate_dur(duration, count, minstep)
 
-    print('>>>RATE_DUR:', time_params)
-
     ss = time_params['-ss']
     t = time_params['-t']
     r = time_params['-r']
-
-    # ~step = duration/(count)
-    # ~ss = step//2 if count%2 else step
 
     # ~fps_f = 'fps='+str(fps)
     # ~select_f = 'select=gt(scene\,0.1)'
@@ -111,15 +107,17 @@ def generate_thumbs(filename,
 
     vfilters = scale_f+', '+crop_f
 
-    thumb_postfix = """_thumb_%02d.jpg"""
+    thumb_postfix = '_thumb_%02d.jpg'
 
-    args = [DEFAULT_FFMPEG_BIN,
+    args = [
+            DEFAULT_FFMPEG_BIN,
             '-i', filename,
             '-ss', str(ss),
             '-vf', str(vfilters),
             '-r', str(r),
             '-t', str(t),
-            '-f', 'image2'] \
+            '-f', 'image2'
+            ] \
             + DEFAULT_FFMPEG_OPTIONS \
             + [cur_file+thumb_postfix]
 
@@ -144,7 +142,8 @@ class Webminfo(FFInfo):
 
         self.thumbs_tmp_dir = tempfile.TemporaryDirectory()
 
-        self.thumbs = generate_thumbs(filename,
+        self.thumbs = generate_thumbs(
+                                        filename,
                                         minstep,
                                         count,
                                         thumbs_dir=self.thumbs_tmp_dir.name,
@@ -173,7 +172,7 @@ def rate_dur(duration, count=1, cminstep=5):
     dur = min(dur, duration - offset)
 
     gap_length = dur/gap_count
-    
+
     return {
         '-ss': offset,
         '-t': dur,
@@ -183,10 +182,9 @@ def rate_dur(duration, count=1, cminstep=5):
 
 if __name__ == '__main__':
 
-    # ~path = "/media/DATA/Downloads/Видео/103151009" if not platform.system() == 'Window' else "C:\\Users\\Andrew\\Downloads\\Видео\\103151009"
     path = sys.argv[1]
 
-    webms = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith('.webm')][0:1]
+    webms = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.lower().endswith('.webm')]
     files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
 
     print(">>>LOADING FILES INFO")
@@ -199,26 +197,30 @@ if __name__ == '__main__':
     current_time = time.process_time()
 
     delta_time = current_time - last_time
+
     print("TOTALLY (time): %d ms, %d webms" %(delta_time*1000, len(webms)))
     print("<MILLISECONDS> (time) PER WEBM:", delta_time*1000/len(webms))
+
+    print("\n\n\n")
 
     print(">>>THUMBS GEN\n")
 
     last_time = time.process_time()
 
-    for ww in enumerate(webms):
-        webm = ww[1]
-        print('>>>WEBM', webm)
+    for webm in webms:
+        print(">>>WEBM", webm)
         with Webminfo(webm, minstep=1, count=5, width=600, cwidth=400) as w:
-            print()
             print(w.filename)
             print(w.path)
             print(w.duration, w.width, w.height)
             for i in w.thumbs:
                 print(i)
+            print()
 
     current_time = time.process_time()
 
     delta_time = current_time - last_time
+
+    print("\n\n\n")
     print("TOTALLY (time): %d ms, %d webms" %(delta_time*1000, len(webms)))
     print("<MILLISECONDS> (time) PER WEBM:", delta_time*1000/len(webms))
