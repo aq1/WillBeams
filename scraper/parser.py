@@ -154,3 +154,15 @@ def start_thread(task_q, webm_q, url, sections):
 def stop_threads(task_q, workers):
     for _ in range(workers):
         task_q.put(utils.STOP_SIGNAL)
+
+
+if __name__ == '__main__':
+    task_q = qhandler.get_task_q()
+    webm_q = qhandler.create_channel()
+    url = utils.BOARD_URL
+    sections = ['b']
+    try:
+        work(task_q, webm_q, url, sections)
+    except (KeyboardInterrupt, SystemExit):
+        utils.inform("I'm done", level=utils.IMPORTANT_INFO)
+        exit()

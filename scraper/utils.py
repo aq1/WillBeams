@@ -19,7 +19,7 @@ SECTIONS = ['a', 'abu', 'au', 'b', 'bg', 'bi', 'biz', 'bo',
 STOP_SIGNAL = 'Stop there'
 
 INFO, WARNING, ERROR, IMPORTANT_INFO = 3, 2, 1, 1
-VERBOSITY_LEVEL = IMPORTANT_INFO
+VERBOSITY_LEVEL = INFO
 WEBM = 6
 
 BOARD_URL = '2ch.hk'
