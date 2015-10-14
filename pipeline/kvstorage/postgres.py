@@ -22,13 +22,18 @@ class PostgresKV:
         self.cur.execute('SELECT value FROM kv WHERE key = %s', (key, ))
         res = self.cur.fetchone()
         if res is not None:
-            res = res[0]
+            res = bytes(res[0])
         return res
 
     def put(self, key, value):
         try:
             self.cur.execute('INSERT INTO kv (key, value) VALUES (%s, %s)', (key, value))
         except psycopg2.IntegrityError:
+            exists = True
             self.db.rollback()
         else:
+            exists = False
+            self.db.commit()
+        if exists:
+            self.cur.execute('UPDATE kv SET value = %s WHERE key = %s', (value, key))
             self.db.commit()
