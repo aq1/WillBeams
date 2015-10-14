@@ -1,5 +1,5 @@
 '''
-uniq = UnicheckClient(connection, channel)
+uniq = UnicheckClient(connection)
 if uniq.call('check', 'md5', b'<some_md5>'):
     # already exists, dropping
 else:
@@ -20,7 +20,7 @@ available_ways = {
 
 
 @rabbit_main
-def run_server(connection, channel, storage):
+def run_server(connection, storage):
 
     def serialize_response(v):
         if v is None:
@@ -38,7 +38,7 @@ def run_server(connection, channel, storage):
             return func(st, value)
 
         rpc_server(
-            channel,
+            connection,
             handler,
             serialize_response,
             deserialize_request,
