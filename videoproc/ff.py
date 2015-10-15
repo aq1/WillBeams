@@ -21,23 +21,24 @@ DEFAULT_FF_PATH = './ffmpeg/' if os.path.isdir('./ffmpeg') and os.path.exists('.
 DEFAULT_FFMPEG_BIN = os.path.join(DEFAULT_FF_PATH, FFMPEG_BIN)
 DEFAULT_FFPROBE_BIN = os.path.join(DEFAULT_FF_PATH, FFPROBE_BIN)
 
-REQUIRED_FFPROBE_OPTIONS = ['-hide_banner', '-v', 'quiet', '-print_format', 'json=c=1']
+REQUIRED_FFPROBE_OPTIONS = ['-hide_banner', '-print_format', 'json=c=1']  # , '-v', 'quiet']
 DEFAULT_FFPROBE_OPTIONS = ['-show_format', '-show_streams']
 
-DEFAULT_FFMPEG_OPTIONS = ['-hide_banner', '-v', 'quiet', '-an']
+DEFAULT_FFMPEG_OPTIONS = ['-pix_fmt', 'yuvj420p', '-hide_banner', '-an']  # , '-v', 'quiet']
 
-THUMBS_DIR = tempfile.TemporaryDirectory().name
+THUMBS_DIR = tempfile.TemporaryDirectory()
+THUMBS_DIR_NAME = THUMBS_DIR.name
 
 EMPTY_VIDEO = {
-                'height': 0,
-                'width': 0,
-                'duration': 0,
-                'codec_name': None
-                }
+    'height': 0,
+    'width': 0,
+    'duration': 0,
+    'codec_name': None
+}
 
 EMPTY_AUDIO = {
-                'codec_name': None
-                }
+    'codec_name': None
+}
 
 
 class FFInfo(object):
@@ -48,8 +49,8 @@ class FFInfo(object):
 
         file_format = file_info['format']
 
-        videostreams = [x for x in file_info['streams'] if x['codec_type']=='video']
-        audiostreams = [x for x in file_info['streams'] if x['codec_type']=='audio']
+        videostreams = [x for x in file_info['streams'] if x['codec_type'] == 'video']
+        audiostreams = [x for x in file_info['streams'] if x['codec_type'] == 'audio']
 
         videostream = videostreams[0] if videostreams else EMPTY_VIDEO
         audiostream = audiostreams[0] if audiostreams else EMPTY_AUDIO
@@ -65,12 +66,13 @@ class FFInfo(object):
         self.duration = float(file_format['duration'])
         self.filename = os.path.basename(file_format['filename'])
 
-        self.thumbs = []
-
 
 def get_file_info(filename, options=DEFAULT_FFPROBE_OPTIONS):
 
-    ff_options = [DEFAULT_FFPROBE_BIN, '-i', filename] + REQUIRED_FFPROBE_OPTIONS + options
+    ff_options = \
+        [DEFAULT_FFPROBE_BIN, '-i', filename] \
+        + REQUIRED_FFPROBE_OPTIONS \
+        + options
 
     file_info = json.loads(subprocess.check_output(ff_options).decode('utf-8'))
 
@@ -78,15 +80,12 @@ def get_file_info(filename, options=DEFAULT_FFPROBE_OPTIONS):
 
 
 def generate_thumbs(
-                    filename,
-                    minstep=1,
-                    count=1,
-                    thumbs_dir=os.path.abspath(THUMBS_DIR),
-                    width=-1,
-                    height=-1,
-                    cwidth=0,
-                    cheight=0
-                    ):
+        filename,
+        minstep=1,
+        count=1,
+        vfilters="",
+        thumbs_dir=os.path.abspath(THUMBS_DIR_NAME)
+):
 
     ffinfo = FFInfo(filename, get_file_info(filename, DEFAULT_FFPROBE_OPTIONS))
 
@@ -102,24 +101,20 @@ def generate_thumbs(
 
     # ~fps_f = 'fps='+str(fps)
     # ~select_f = 'select=gt(scene\,0.1)'
-    scale_f = 'scale='+str(width)+':'+str(height)
-    crop_f = "crop=w='min(iw,"+str(cwidth)+")':h='min(ih,"+str(cheight if cheight else cwidth)+")'"
-
-    vfilters = scale_f+', '+crop_f
 
     thumb_postfix = '_thumb_%02d.jpg'
 
     args = [
-            DEFAULT_FFMPEG_BIN,
-            '-i', filename,
-            '-ss', str(ss),
-            '-vf', str(vfilters),
-            '-r', str(r),
-            '-t', str(t),
-            '-f', 'image2'
-            ] \
-            + DEFAULT_FFMPEG_OPTIONS \
-            + [cur_file+thumb_postfix]
+        DEFAULT_FFMPEG_BIN,
+        '-i', filename,
+        '-ss', str(ss),
+        '-vf' if vfilters else '', str(vfilters),
+        '-r', str(r),
+        '-t', str(t),
+        '-f', 'image2'
+    ] \
+        + DEFAULT_FFMPEG_OPTIONS \
+        + [cur_file+thumb_postfix]
 
     subprocess.check_call(args)
 
@@ -133,34 +128,16 @@ def webm_info(filename):
     return FFInfo(get_file_info(filename))
 
 
-class Webminfo(FFInfo):
+class WebmInfo(FFInfo):
 
-    def __init__(self, filename, minstep, count, **kwargs):
+    def __init__(self, filename):
 
         file_info = get_file_info(filename)
         FFInfo.__init__(self, filename, file_info)
 
-        self.thumbs_tmp_dir = tempfile.TemporaryDirectory()
-
-        self.thumbs = generate_thumbs(
-                                        filename,
-                                        minstep,
-                                        count,
-                                        thumbs_dir=self.thumbs_tmp_dir.name,
-                                        **kwargs
-                                        )
-
-    def __enter__(self):
-
-        return self
-
-    def __exit__(self, typeof, value, traceback):
-
-        self.thumbs_tmp_dir.cleanup()
-        pass
-
 
 def rate_dur(duration, count=1, cminstep=5):
+
     gap_length = duration / count
     gap_length = max(cminstep, gap_length)
     gap_length = min(duration, gap_length)
@@ -198,7 +175,7 @@ if __name__ == '__main__':
 
     delta_time = current_time - last_time
 
-    print("TOTALLY (time): %d ms, %d webms" %(delta_time*1000, len(webms)))
+    print("TOTALLY (time): %d ms, %d webms" % (delta_time*1000, len(webms)))
     print("<MILLISECONDS> (time) PER WEBM:", delta_time*1000/len(webms))
 
     print("\n\n\n")
@@ -207,20 +184,42 @@ if __name__ == '__main__':
 
     last_time = time.process_time()
 
+    width = height = 600
+    cwidth = cheight = 400
+
+    temp_dir = tempfile.TemporaryDirectory()
+    temp_dir_name = temp_dir.name
+
     for webm in webms:
         print(">>>WEBM", webm)
-        with Webminfo(webm, minstep=1, count=5, width=600, cwidth=400) as w:
-            print(w.filename)
-            print(w.path)
-            print(w.duration, w.width, w.height)
-            for i in w.thumbs:
-                print(i)
-            print()
+
+        w = WebmInfo(webm)
+
+        print(w.filename)
+        print(w.path)
+        print(w.duration, w.width, w.height)
+
+        scale_f = 'scale='+str(width)+':'+str(height)
+        crop_f = "crop=w='min(iw,"+str(cwidth)+")':h='min(ih,"+str(cheight if cheight else cwidth)+")'"
+
+        vfilters = scale_f+', '+crop_f
+
+        thumbs = generate_thumbs(
+            webm,
+            minstep=1,
+            count=5,
+            vfilters=vfilters,
+            thumbs_dir=temp_dir_name
+        )
+
+        for i in thumbs:
+            print(i)
+        print()
 
     current_time = time.process_time()
 
     delta_time = current_time - last_time
 
     print("\n\n\n")
-    print("TOTALLY (time): %d ms, %d webms" %(delta_time*1000, len(webms)))
+    print("TOTALLY (time): %d ms, %d webms" % (delta_time*1000, len(webms)))
     print("<MILLISECONDS> (time) PER WEBM:", delta_time*1000/len(webms))
