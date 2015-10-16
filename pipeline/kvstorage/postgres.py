@@ -19,6 +19,8 @@ class PostgresKV:
         self.db.close()
 
     def get_many(self, key_set):
+        if not key_set:
+            return {}
         cur = self.db.cursor()
         cur.execute('SELECT key, value FROM kv WHERE key IN %s', (tuple(key_set), ))
         result = {bytes(k): bytes(v) for k, v in cur.fetchall()}
