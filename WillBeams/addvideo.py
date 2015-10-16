@@ -22,12 +22,27 @@ from django.core.files import File
 from newapp.models import Webm, Tag
 
 
-def add_prepared_video(video_filename, video_length, preview_filename=None, nsfw_source=False, tags=None):
+def add_prepared_video(ffinfo, thumbs=[], nsfw_source=False, tags=None):
     webm = Webm()
-    webm.video = File(open(video_filename, 'rb'))
-    webm.length = video_length
-    if preview_filename is not None:
-        webm.thumb = File(open(preview_filename, 'rb'))
+    webm.video = File(open(ffinfo.path, 'rb'))
+    webm.length = round(ffinfo.duration)
+    webm.width = ffinfo.width
+    webm.height = ffinfo.height
+
+    ti_valid = lambda ti: ti >= 0 and ti < len(thumbs)
+    mti = len(thumbs) // 2
+
+    if ti_valid(mti):
+        webm.thumb = File(open(thumbs[mti], 'rb'))
+    if ti_valid(mti + 1):
+        webm.thumb_a1 = File(open(thumbs[mti + 1], 'rb'))
+    if ti_valid(mti + 2):
+        webm.thumb_a2 = File(open(thumbs[mti + 2], 'rb'))
+    if ti_valid(mti - 1):
+        webm.thumb_b1 = File(open(thumbs[mti - 1], 'rb'))
+    if ti_valid(mti - 2):
+        webm.thumb_b2 = File(open(thumbs[mti - 2], 'rb'))
+
     webm.nsfw_source = nsfw_source
     webm.save()
 

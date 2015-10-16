@@ -26,11 +26,10 @@ def get_ff_filter(width, height):
 def add_video(video_filename, thumbdir, **kwargs):
     ffinfo = get_file_info(video_filename)
     filt = get_ff_filter(ffinfo.width, ffinfo.height)
-    thumbs = generate_thumbs(ffinfo, thumbdir, minstep=20, count=1, vfilters=filt)
+    thumbs = generate_thumbs(ffinfo, thumbdir, minstep=20, count=5, vfilters=filt)
     add_prepared_video(
-        video_filename,
-        round(ffinfo.duration),
-        preview_filename=thumbs[0] if len(thumbs) else None,
+        ffinfo,
+        thumbs=thumbs,
         **kwargs
     )
 

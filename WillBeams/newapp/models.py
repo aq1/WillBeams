@@ -9,12 +9,19 @@ class Tag(models.Model):
         return self.name
 
 
-
 class Webm(models.Model):
     video = models.FileField(upload_to='video')
-    thumb = models.ImageField(upload_to='preview', null=True, blank=True)
+
+    thumb = models.ImageField(upload_to='thumb', null=True, blank=True)  # main thumb
+    thumb_a1 = models.ImageField(upload_to='thumba1', null=True, blank=True)  # after
+    thumb_a2 = models.ImageField(upload_to='thumba2', null=True, blank=True)
+    thumb_b1 = models.ImageField(upload_to='thumbb1', null=True, blank=True)  # before
+    thumb_b2 = models.ImageField(upload_to='thumbb2', null=True, blank=True)
 
     length = models.IntegerField()  # length of video in seconds
+    width = models.IntegerField()
+    height = models.IntegerField()
+
     added = models.DateTimeField(auto_now_add=True)
     nsfw_source = models.BooleanField(default=False)
     blacklisted = models.BooleanField(default=False)
