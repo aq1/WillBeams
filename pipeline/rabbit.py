@@ -31,7 +31,7 @@ def simple_putter(connection, serialize, *, queue_name, durable=False):
     return put_fn
 
 
-def simple_getter(connection, deserialize, handler, *, queue_name, durable=False, no_ack=False):
+def simple_getter(connection, deserialize, handler, *, queue_name, durable=False, no_ack=False, exclusive=False):
     channel = connection.channel()
     channel.queue_declare(queue=queue_name, durable=durable)
     channel.basic_qos(prefetch_count=1)  # don't use round robin dispatching
@@ -43,7 +43,7 @@ def simple_getter(connection, deserialize, handler, *, queue_name, durable=False
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
     for method, props, body in channel.consume(
-        queue=queue_name, no_ack=no_ack, exclusive=True
+        queue=queue_name, no_ack=no_ack, exclusive=exclusive
     ):
         msg_callback(channel, method, props, body)
 

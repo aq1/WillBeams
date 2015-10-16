@@ -96,4 +96,4 @@ def main(connection):
     def inner_handler(*args, **kwargs):
         return handler(uniq, *args, **kwargs)
 
-    simple_getter(connection, deserialize_msg, inner_handler, queue_name=DOWNLOADER_QUEUE_NAME, no_ack=True)
+    simple_getter(connection, deserialize_msg, inner_handler, queue_name=DOWNLOADER_QUEUE_NAME, no_ack=False)

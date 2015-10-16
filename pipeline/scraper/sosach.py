@@ -34,9 +34,11 @@ WEBM_TYPE = 6
 session = requests.Session()
 
 
-def _get_json(url):
+def _get_json(url, can_skip=False):
     sleep(3 + random() * 5)
     r = session.get(url)
+    if can_skip and r.status_code != 200:
+        return None
     assert r.status_code == 200, 'Bad HTTP status {}'.format(r.status_code)
     return json.loads(r.text)
 
@@ -62,7 +64,10 @@ def add_webms(batch, board_tick, *, output, unicheck):
 def parse_thread(board_tick, thread_num, *, output, unicheck):
     print('Parsing thread /{}/res/{}.json'.format(board_tick, thread_num))
     url = 'http://2ch.hk/{}/res/{}.json'.format(board_tick, thread_num)
-    thread = _get_json(url)
+    thread = _get_json(url, can_skip=True)
+    if thread is None:
+        print('Skip')
+        return
     batch = []
     for post in thread['threads'][0]['posts']:
         for f in post.get('files', []):
