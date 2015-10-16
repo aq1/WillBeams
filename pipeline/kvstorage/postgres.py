@@ -5,8 +5,8 @@ from ..config import KV_POSTGRES
 class PostgresKV:
     def __enter__(self):
         self.db = psycopg2.connect(**KV_POSTGRES)
-        self.cur = self.db.cursor()
-        self.cur.execute(
+        cur = self.db.cursor()
+        cur.execute(
             'CREATE TABLE IF NOT EXISTS kv ('
             'key bytea NOT NULL PRIMARY KEY,'
             'value bytea NOT NULL'
@@ -18,22 +18,26 @@ class PostgresKV:
     def __exit__(self, type, value, traceback):
         self.db.close()
 
-    def get(self, key):
-        self.cur.execute('SELECT value FROM kv WHERE key = %s', (key, ))
-        res = self.cur.fetchone()
-        if res is not None:
-            res = bytes(res[0])
-        return res
+    def get_many(self, key_set):
+        cur = self.db.cursor()
+        cur.execute('SELECT key, value FROM kv WHERE key IN %s', (tuple(key_set), ))
+        result = {bytes(k): bytes(v) for k, v in cur.fetchall()}
+        self.db.commit()  # finish transaction
+        for k in key_set - result.keys():
+            result[k] = None
+        return result
 
-    def put(self, key, value):
-        try:
-            self.cur.execute('INSERT INTO kv (key, value) VALUES (%s, %s)', (key, value))
-        except psycopg2.IntegrityError:
-            exists = True
-            self.db.rollback()
-        else:
-            exists = False
-            self.db.commit()
-        if exists:
-            self.cur.execute('UPDATE kv SET value = %s WHERE key = %s', (value, key))
-            self.db.commit()
+    def put_many(self, kv_dict):
+        cur = self.db.cursor()
+        ins = []
+        for key, value in kv_dict.items():
+            cur.execute('UPDATE kv SET value = %s WHERE key = %s', (value, key))
+            if not cur.rowcount:
+                ins.append(key)
+                ins.append(value)
+        if ins:
+            cur.execute(
+                'INSERT INTO kv (key, value) VALUES ' + ', '.join(['(%s, %s)'] * (len(ins) // 2)),
+                ins
+            )
+        self.db.commit()

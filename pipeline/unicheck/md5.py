@@ -1,12 +1,17 @@
 import hashlib
 
 
-def check_key(kv, md5):
-    return kv.get(md5) is not None
+PREFIX = b'md5:'
 
 
-def put_key(kv, key):
-    kv.put(key, b'')
+def check_keys(kv, keys):
+    r = kv.get_many({PREFIX + k for k in keys})
+    return {k[len(PREFIX):]: v for k, v in r.items()}
+
+
+def put_keys(kv, d):
+    kv.put_many({PREFIX + k: v for k, v in d.items()})
+    return True
 
 
 def compute_key(filename):

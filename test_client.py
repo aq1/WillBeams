@@ -14,7 +14,8 @@ def test_checker():
     @rabbit_main
     def main(connection):
         uniq = UnicheckClient(connection)
-        print(uniq.call('check', 'md5', key))
+        # print(uniq.call('put', 'md5', {key: b''}))
+        print(uniq.call('check', 'md5', {key}))
 
     main()
 
@@ -34,5 +35,5 @@ def test_downloader():
 
 
 if __name__ == '__main__':
-    # test_checker()
-    test_downloader()
+    test_checker()
+    # test_downloader()

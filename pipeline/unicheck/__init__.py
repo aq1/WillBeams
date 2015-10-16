@@ -11,21 +11,34 @@ import pickle
 from ..rabbit import rpc_server, rabbit_main, AbstractRpcClient
 from ..config import UNICHECK_QUEUE_NAME
 
-from .md5 import check_key as md5_check_key, put_key as md5_put_key
+from .md5 import check_keys as md5_check_keys, put_keys as md5_put_keys
+
+
+def validate_check(value):
+    assert isinstance(value, set)
+    for k in value:
+        assert isinstance(k, bytes)
+
+
+def validate_put(value):
+    assert isinstance(value, dict)
+    for k, v in value.items():
+        assert isinstance(k, bytes)
+        assert isinstance(v, bytes)
 
 
 available_ways = {
-    'md5': (md5_check_key, md5_put_key),
+    'md5': (md5_check_keys, md5_put_keys),
 }
+METHODS = ('check', 'put')
+VAL_FUNCS = (validate_check, validate_put)
 
 
 @rabbit_main
 def run_server(connection, storage):
 
     def serialize_response(v):
-        if v is None:
-            return b''
-        return b'Y' if v else b'N'
+        return pickle.dumps(v)
 
     def deserialize_request(v):
         return pickle.loads(v), {}
@@ -33,8 +46,14 @@ def run_server(connection, storage):
     with storage as st:
 
         def handler(method, way, value):
-            meth_key = 1 if method == 'put' else 0
-            func = available_ways[way][meth_key]
+            if method not in METHODS or way not in available_ways:
+                return None
+            mi = METHODS.index(method)
+            try:
+                VAL_FUNCS[mi](value)
+            except AssertionError:
+                return None
+            func = available_ways[way][mi]
             return func(st, value)
 
         rpc_server(
@@ -53,6 +72,4 @@ class UnicheckClient(AbstractRpcClient):
         return pickle.dumps((method, way, value))
 
     def deserialize_response(self, resp):
-        if resp == b'':
-            return None
-        return resp == b'Y'
+        return pickle.loads(resp)
