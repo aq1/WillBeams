@@ -5,7 +5,7 @@
 
 <div class="row">
   <div class="col-xs-12 video-view">
-    <div class="panel panel-default">
+    <div class="panel panel-default" style="{% if webm.width %}width: {{ webm.width|add:36 }}px;{% endif %}max-width: 100%; margin: 0 auto; ">
       <div class="panel-body">
         <video src="{{ webm.video.url }}" controls>
           Your browser does not support the <code>video</code> element.
