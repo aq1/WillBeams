@@ -1,7 +1,7 @@
 from WillBeams.addvideo import add_prepared_video
-from videoproc.ff import Webminfo
+from .videoproc.ff import get_file_info, generate_thumbs
 from .rabbit import simple_getter, rabbit_main
-from .config import DOWNLOADER_QUEUE_NAME
+from .config import DOWNLOADER_QUEUE_NAME, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH, THUMBNAIL_RATIO
 import pickle
 import requests
 from tempfile import TemporaryDirectory
@@ -11,17 +11,28 @@ from pipeline.unicheck import UnicheckClient
 from time import sleep
 
 
-def add_video(video_filename, **kwargs):
-    with Webminfo(video_filename, minstep=20, count=1, width=600, cwidth=400) as winfo:
-        thumb = None
-        if len(winfo.thumbs):
-            thumb = winfo.thumbs[0]
-        add_prepared_video(
-            video_filename,
-            round(winfo.duration),
-            preview_filename=thumb,
-            **kwargs
-        )
+def get_ff_filter(width, height):
+    result = []
+    if width > height * THUMBNAIL_RATIO:
+        # constant height
+        result.append('scale={}:{}'.format(-1, THUMBNAIL_HEIGHT))
+    else:
+        # constant width
+        result.append('scale={}:{}'.format(THUMBNAIL_WIDTH, -1))
+    result.append('crop=w={}:h={}'.format(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT))
+    return ', '.join(result)
+
+
+def add_video(video_filename, thumbdir, **kwargs):
+    ffinfo = get_file_info(video_filename)
+    filt = get_ff_filter(ffinfo.width, ffinfo.height)
+    thumbs = generate_thumbs(ffinfo, thumbdir, minstep=20, count=1, vfilters=filt)
+    add_prepared_video(
+        video_filename,
+        round(ffinfo.duration),
+        preview_filename=thumbs[0] if len(thumbs) else None,
+        **kwargs
+    )
 
 
 def compute_keys(video_filename):
@@ -32,12 +43,13 @@ def compute_keys(video_filename):
 
 def check_uniqueness(uniq, keys):
     # returns True if video is unique and can be passed further
-    return not uniq.call('check', 'md5', keys['md5'])
+    res = uniq.call('check', 'md5', {keys['md5']})
+    return res[keys['md5']] is None
 
 
 def put_keys(uniq, keys):
     for k, v in keys.items():
-        uniq.call('put', k, v)  # TODO: batching
+        uniq.call('put', k, {v: b''})  # TODO: batching over different key types
 
 
 def deserialize_msg(v):
@@ -66,12 +78,15 @@ def handler(uniq, url, *, nsfw=False, tags=None):
     with TemporaryDirectory() as dir_name:
         video_filename = join(dir_name, 'video.webm')
         download_content(r, video_filename)
-        print(video_filename, 'downloaded')
+        print('downloaded into {}'.format(video_filename))
         keys = compute_keys(video_filename)
         if not check_uniqueness(uniq, keys):
+            print('rejected')
             return True  # not unique, ignore
-        add_video(video_filename, nsfw_source=nsfw, tags=tags)
+        print('accepted')
+        add_video(video_filename, dir_name, nsfw_source=nsfw, tags=tags)
         put_keys(uniq, keys)
+        print('added')
         return True
 
 
@@ -82,4 +97,4 @@ def main(connection):
     def inner_handler(*args, **kwargs):
         return handler(uniq, *args, **kwargs)
 
-    simple_getter(connection, deserialize_msg, inner_handler, queue_name=DOWNLOADER_QUEUE_NAME)
+    simple_getter(connection, deserialize_msg, inner_handler, queue_name=DOWNLOADER_QUEUE_NAME, no_ack=True)

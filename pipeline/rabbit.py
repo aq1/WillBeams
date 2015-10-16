@@ -42,8 +42,10 @@ def simple_getter(connection, deserialize, handler, *, queue_name, durable=False
         if not no_ack and result:
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    channel.basic_consume(msg_callback, queue=queue_name, no_ack=no_ack)
-    channel.start_consuming()
+    for method, props, body in channel.consume(
+        queue=queue_name, no_ack=no_ack, exclusive=True
+    ):
+        msg_callback(channel, method, props, body)
 
 
 def rpc_server(connection, remote_procedure, serialize_response, deserialize_request, *, queue_name):
@@ -81,7 +83,6 @@ class AbstractRpcClient:
         result = self.channel.queue_declare(exclusive=True)
         self.callback_queue = result.method.queue
         self.auto_id = 1
-        self.queue = self.channel.consume(queue=self.callback_queue, no_ack=True, exclusive=True)
 
     def _allocate_id(self):
         r = format(self.auto_id, 'x')
@@ -99,9 +100,10 @@ class AbstractRpcClient:
             ),
             body=self.serialize_request(*args, **kwargs)
         )
-        while True:
+        for method, props, body in self.channel.consume(
+            queue=self.callback_queue, no_ack=True, exclusive=True
+        ):
             # docs notice that same id can arrive twice, don't assert check id
-            method, props, body = next(self.queue)
             if corr_id == props.correlation_id:
                 break
         return self.deserialize_response(body)

@@ -7,15 +7,16 @@ import pickle
 
 
 def test_checker():
-    print(argv[1])
-    key = compute_key(argv[1])
-    print(key)
+    print(argv[1:])
+    keys = [compute_key(a) for a in argv[1:]]
+    print(keys)
 
     @rabbit_main
     def main(connection):
         uniq = UnicheckClient(connection)
-        # print(uniq.call('put', 'md5', {key: b''}))
-        print(uniq.call('check', 'md5', {key}))
+        for key in keys:
+            print(uniq.call('check', 'md5', {key}))
+            print(uniq.call('put', 'md5', {key: b''}))
 
     main()
 
@@ -35,5 +36,5 @@ def test_downloader():
 
 
 if __name__ == '__main__':
-    test_checker()
-    # test_downloader()
+    # test_checker()
+    test_downloader()

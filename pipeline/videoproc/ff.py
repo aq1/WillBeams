@@ -97,7 +97,7 @@ def generate_thumbs(ffinfo, thumbs_dir, minstep=1, count=1, vfilters=None, quiet
     args.append(fname_template)
 
     subprocess.check_call(args)
-    return tfile_list()
+    return list(map(lambda fname: os.path.join(thumbs_dir, fname), tfile_list()))
 
 
 def rate_dur(duration, count=1, cminstep=5):
