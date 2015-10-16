@@ -47,8 +47,7 @@ def check_uniqueness(uniq, keys):
 
 
 def put_keys(uniq, keys):
-    for k, v in keys.items():
-        uniq.call('put', {v: b''})
+    uniq.call('put', {v: b'' for v in keys.values()})
 
 
 def deserialize_msg(v):
@@ -65,7 +64,16 @@ def download_content(r, video_filename):
             fd.write(chunk)
 
 
-def handler(uniq, url, *, nsfw=False, tags=None):
+def handler(uniq, url, *, nsfw=False, tags=None, md5=None):
+    pre_md5_key = None
+    if md5 is not None:
+        # additional pre-downloading check
+        pre_md5_key = md5_PREFIX + md5
+        r = uniq.call('check', {pre_md5_key})
+        if r[pre_md5_key] is not None:
+            print('skip')
+            return True
+
     sleep(5)  # prevent requesting very fast
     print(url)
     r = requests.get(url)
@@ -79,6 +87,10 @@ def handler(uniq, url, *, nsfw=False, tags=None):
         download_content(r, video_filename)
         print('downloaded into {}'.format(video_filename))
         keys = compute_keys(video_filename)
+
+        if pre_md5_key is not None and keys[md5_PREFIX] != pre_md5_key:
+            print('! md5 keys not matching: {} != {}'.format(pre_md5_key, keys[md5_PREFIX]))
+
         if not check_uniqueness(uniq, keys):
             print('rejected')
             return True  # not unique, ignore

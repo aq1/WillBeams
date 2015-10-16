@@ -49,15 +49,16 @@ def add_webms(batch, board_tick, *, output, unicheck):
     accepted = set()
     for k, v in res.items():
         if v is None:
-            accepted.add(md5_map[k])
+            accepted.add((k, md5_map[k]))
     print('Amount of webms: {} ({} rejected + {} enqueued)'.format(
         len(batch), len(batch) - len(accepted), len(accepted)
     ))
-    for url in accepted:
+    for md5_key, url in accepted:
         output(
             url,
             nsfw=board_tick in NSFW_BOARDS,
-            tags=[board_tick]
+            tags=[board_tick],
+            md5=md5_key[len(md5_PREFIX):]
         )
 
 

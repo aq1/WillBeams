@@ -19,8 +19,8 @@ run_bg(){
     ) &
 }
 
-run_bg "$PY unicheck.py" 10 10 1
-run_bg "$PY downloader.py" 10 10 1
+run_bg "$PY unicheck.py" 60 60 1
+run_bg "$PY downloader.py" 60 60 1
 run_bg "$PY -m pipeline.scraper.sosach --boards b" 6h 10m 20
 run_bg "$PY -m pipeline.scraper.sosach --boards vg" 10h 10m 40m
 
