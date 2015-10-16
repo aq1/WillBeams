@@ -1,191 +1,8 @@
-import os
-import sys
-
-import http.client as http
-import queue
-
-import json
-import time
 import threading
 
-from datetime import datetime
-
-import pika
-
-
-NETWORK_ERRORS = http.HTTPException, ConnectionError, OSError
-
-BOARD_URL = '2ch.hk'
-DEFAULT_SECTION = 'b'
-CATALOG_URL = '/{}/catalog.json'
-THREAD_URL = '/{}/res/{}.json'
-RESOURCE_URL = '/{}/{}'
-
-HEADERS = {
-    'User-Agent': "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0",
-    'Accept-Charset': 'utf-8',
-}
-
-
-INFO, WARNING, ERROR = 3, 2, 1
-VERBOSITY_LEVEL = INFO
-WEBM = 6
-
-CONSOLE_COLORS = {
-    INFO: '\033[0m',
-    WARNING: '\033[93m',
-    ERROR: '\033[91m',
-    'HEADER': '\033[95m',
-    'OKGREEN': '\033[92m',
-    'ENDC': '\033[0m',
-    'BOLD': '\033[1m',
-    'UNDERLINE': '\033[4m',
-}
-
-SECTIONS = ['a', 'abu', 'au', 'b', 'bg', 'bi', 'biz', 'bo',
-            'c', 'cg', 'd', 'di', 'diy', 'e', 'em', 'es',
-            'fa', 'fag', 'fd', 'fet', 'fg', 'fiz', 'fl',
-            'ftb', 'fur', 'ga', 'gd', 'gg', 'h', 'hc',
-            'hh', 'hi', 'ho', 'hw', 'ja', 'ma', 'me',
-            'media', 'mg', 'mlp', 'mmo', 'mo', 'moba',
-            'mobi', 'mov', 'mu', 'mus', 'ne', 'p', 'pa',
-            'po', 'pr', 'psy', 'r', 'ra', 're', 'rf', 's',
-            'sci', 'sex', 'sf', 'sn', 'soc', 'sp', 'spc',
-            't', 'tes', 'trv', 'tv', 'un', 'vg', 'vn', 'w',
-            'web', 'wh', 'wm', 'wn', 'wp', 'wr', 'wrk']
-
-DONE = 1
-WORKERS = 5
-
-
-def inform(msg, level=10):
-
-    if level <= VERBOSITY_LEVEL:
-        print(msg)
-        # print('{}{}{}'.format(CONSOLE_COLORS[level], msg, CONSOLE_COLORS['ENDC']))
-
-
-class Connection(object):
-
-    def __init__(self, host=BOARD_URL):
-        self._host = host
-        self._connect()
-
-    def _repeat_on(exceptions):
-        def _repeat_on_error(function):
-            def _f(self, *args, **kwargs):
-                while True:
-                    try:
-                        return function(self, *args, **kwargs)
-                    except exceptions as e:
-                        inform(e, level=WARNING)
-                        self._connect()
-                        time.sleep(1)
-            return _f
-        return _repeat_on_error
-
-    @_repeat_on(NETWORK_ERRORS)
-    def _connect(self):
-        self._conn = http.HTTPSConnection(self._host)
-        self._set_headers()
-        inform('Connected to {}'.format(self._host), level=INFO)
-
-    def _set_cookie(self):
-        resp = self.get_response('/')
-        self._headers['Cookie'] = resp.getheader('set-cookie')
-        resp.read()
-
-    def _set_headers(self):
-        self._headers = HEADERS
-
-    @_repeat_on(NETWORK_ERRORS)
-    def _get_response(self, request):
-        inform('Requesting {}'.format(request), level=INFO)
-        self._conn.request('GET', request, headers=self._headers)
-        resp = self._conn.getresponse()
-        inform('Response is {}: {}'.format(
-            resp.status, resp.reason), level=INFO)
-        return resp
-
-    def get_response(self, request):
-        return self._get_response(request)
-
-    def get_json(self, request):
-        json_data = {}
-
-        resp = self._get_response(request)
-        data = resp.read()
-
-        try:
-            data = data.decode('utf8')
-        except (AttributeError, UnicodeDecodeError):
-            pass
-
-        if resp.status == 200:
-            try:
-                json_data = json.loads(data)
-            except ValueError as e:
-                inform(e, level=WARNING)
-            except TypeError as e:
-                inform(e, level=WARNING)
-
-        return resp.status, json_data
-
-    def get_file(self, request):
-        return self._get_response(request).read()
-
-
-def get_threads(connection, section):
-    threads = []
-    url = CATALOG_URL.format(section)
-    status, catalog = connection.get_json(url)
-
-    if status != 200:
-        return threads
-
-    try:
-        threads = catalog['threads']
-    except KeyError as e:
-        inform('{}; KeyError: {}'.format(threads.keys(), e), level=WARNING)
-        return threads
-
-    for i, thread in enumerate(threads):
-        threads[i] = THREAD_URL.format(section, thread['num'])
-
-    return threads
-
-
-def get_webms_from_thread(connection, host_url, section, thread_url):
-    found_webms = 0
-    webms = []
-    base_url = '/'.join((host_url, section))
-    status, data = connection.get_json(thread_url)
-    if status != 200:
-        return webms
-
-    try:
-        posts = data['threads'][0]['posts']
-    except KeyError as e:
-        inform('{}; KeyError: {}'.format(data.keys(), e), level=WARNING)
-        return webms
-
-    for post in posts:
-        try:
-            files = post['files']
-        except KeyError:
-            continue
-
-        for f in files:
-            if f.get('type', None) == WEBM:
-                found_webms += 1
-                url = '{}/{}'.format(base_url, f['path'])
-                thumb = '{}/{}'.format(base_url, f['thumbnail'])
-                md5 = f['md5']
-                size = f['size']
-                webms.append(Webm(url, thumb, md5, size))
-
-    inform('Found {} webms'.format(found_webms), level=INFO)
-    return webms
+import qhandler
+import utils
+from connection import Connection
 
 
 class Webm:
@@ -206,67 +23,146 @@ class Webm:
         return '{} {} {} {}'.format(self.url, self.thumb, self.md5, self.size)
 
 
-def get_webms(url=BOARD_URL, section=DEFAULT_SECTION):
+class Thread:
+
+    def __init__(self, section, number):
+        self._section = section
+        self._last_post = 0
+        self._url = utils.THREAD_URL.format(section, number)
+
+    def get_webms(self, fetch_tool):
+        utils.inform('Searching for webms. Last post: {}'.format(
+            self._last_post), level=utils.INFO)
+        webms = []
+        status, data = fetch_tool(self._url)
+
+        if status == 404:
+            return None
+        elif status != 200:
+            return webms
+
+        found_webms_count = 0
+        try:
+            posts = data['threads'][0]['posts']
+        except KeyError as e:
+            utils.inform('Key error: {}'.format(e), level=utils.WARNING)
+            return webms
+
+        for post in posts:
+
+            if post['num'] <= self._last_post:
+                continue
+
+            try:
+                files = post['files']
+            except KeyError:
+                continue
+
+            for f in files:
+                if f.get('type', None) == utils.WEBM:
+                    found_webms_count += 1
+                    url = utils.RESOURCE_URL.format(self._section, f['path'])
+                    thumb = utils.RESOURCE_URL.format(self._section, f['thumbnail'])
+                    md5 = f['md5']
+                    size = f['size']
+                    webms.append(Webm(url, thumb, md5, size))
+
+        utils.inform('Found {} webms'.format(found_webms_count), level=utils.INFO)
+        self._last_post = data['threads'][0]['posts'][-1]['num']
+        return webms
+
+    def __str__(self):
+        return self._url
+
+
+class Catalog:
+
+    def __init__(self, section):
+
+        self._url = utils.CATALOG_URL.format(section)
+        self._section = section
+        self._threads = set()
+
+    def get_threads(self, fetch_tool):
+        alive_threads = set()
+        result = []
+        status, data = fetch_tool(self._url)
+
+        if status != 200:
+            return result
+
+        try:
+            threads = data['threads']
+        except KeyError as e:
+            utils.inform('{} {} {}'.format(e, threads.keys(), self._url), level=utils.WARNING)
+            return result
+
+        for thread in threads:
+            number = int(thread['num'])
+            if number not in self._threads:
+                result.append(Thread(self._section, number))
+                self._threads.add(number)
+
+            alive_threads.add(number)
+
+        utils.inform('Found {} threads'.format(len(result)), level=utils.INFO)
+        self._threads = alive_threads
+        return result
+
+    def __str__(self):
+        return self._url
+
+
+def print_output(webm):
+    utils.inform(webm, level=utils.INFO)
+
+
+def work(task_q, webm_q, url=utils.BOARD_URL, sections=utils.DEFAULT_SECTIONS):
     connection = Connection(url)
-    webms = []
-    threads = get_threads(connection, section)
-    for thread_url in threads:
-        new_webm = get_webms_from_thread(connection, url, section, thread_url)
-        webms.extend(new_webm)
 
-    return webms
+    catalogs = [Catalog(section=section) for section in sections]
+    threads = []
 
+    while True:
+        for catalog in catalogs:
+            qhandler.check_task_q(task_q)
 
-def work(url, sections, task_q, callback):
-    for s in sections:
-        for w in get_webms(url, s):
-            callback(w)
+            threads.extend(catalog.get_threads(connection.get_json))
 
-    task_q.put((DONE, sections))
+        # if thread is 404 we need to remove it from list
+        i = 0
+        length = len(threads)
+        while i < length:
+            qhandler.check_task_q(task_q)
+            webms = threads[i].get_webms(connection.get_json)
 
+            if webms is None:
+                del threads[i]
+                length -= 1
+                continue
 
-def chunk_list(l, size):
-    yield from [l[i:i + size] for i in range(0, len(l), size)]
-
-
-def print_to_console(webm):
-    print(webm)
-
-
-def put_into_queue(webm):
-    pass
+            i += 1
+            for webm in webms:
+                qhandler.put(webm_q, webm)
 
 
-def start_threads(task_q):
-    for sections_chunk in chunk_list(SECTIONS, len(SECTIONS) // WORKERS):
-        t = threading.Thread(
-            target=work, args=(url, sections_chunk, task_q))
-        t.start()
-        print('Thread started')
+def start_thread(task_q, webm_q, url, sections):
+    threading.Thread(target=work, args=(task_q, webm_q, url, sections)).start()
+    utils.inform('Parser thread started', level=utils.IMPORTANT_INFO)
 
 
-def wait_for_all_threads_to_be_done(task_q):
-    done_workers = 0
-
-    while done_workers != WORKERS:
-        signal = task_q.get()
-        if signal[0] == DONE:
-            print(signal[1], '- Done')
-            done_workers += 1
+def stop_threads(task_q, workers):
+    for _ in range(workers):
+        task_q.put(utils.STOP_SIGNAL)
 
 
 if __name__ == '__main__':
-
-    url = BOARD_URL
-    task_q = queue.Queue()
-
-    start = time.time()
-    start_threads(task_q)
-    wait_for_all_threads_to_be_done(task_q)
-    end = int(time.time() - start)
-
-    w = 0
-    webms = []
-
-    m, s = end // 60, end % 60
-    print('Total: {}. Time: {}m {}s'.format(w, m, s))
+    task_q = qhandler.get_task_q()
+    webm_q = qhandler.create_channel()
+    url = utils.BOARD_URL
+    sections = ['b']
+    try:
+        work(task_q, webm_q, url, sections)
+    except (KeyboardInterrupt, SystemExit):
+        utils.inform("I'm done", level=utils.IMPORTANT_INFO)
+        exit()
