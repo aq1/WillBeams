@@ -6,7 +6,7 @@ import pickle
 import requests
 from tempfile import TemporaryDirectory
 from os.path import join
-from pipeline.unicheck.md5 import compute_key as md5_compute_key
+from pipeline.unicheck.md5 import compute_key as md5_compute_key, PREFIX as md5_PREFIX
 from pipeline.unicheck import UnicheckClient
 from time import sleep
 
@@ -37,19 +37,19 @@ def add_video(video_filename, thumbdir, **kwargs):
 
 def compute_keys(video_filename):
     return {
-        'md5': md5_compute_key(video_filename),
+        md5_PREFIX: md5_PREFIX + md5_compute_key(video_filename),
     }
 
 
 def check_uniqueness(uniq, keys):
     # returns True if video is unique and can be passed further
-    res = uniq.call('check', 'md5', {keys['md5']})
-    return res[keys['md5']] is None
+    res = uniq.call('check', {keys[md5_PREFIX]})
+    return res[keys[md5_PREFIX]] is None
 
 
 def put_keys(uniq, keys):
     for k, v in keys.items():
-        uniq.call('put', k, {v: b''})  # TODO: batching over different key types
+        uniq.call('put', {v: b''})
 
 
 def deserialize_msg(v):

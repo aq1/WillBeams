@@ -1,17 +1,21 @@
 '''
+from unicheck.md5 import PREFIX as md5_PREFIX
 uniq = UnicheckClient(connection)
-if uniq.call('check', 'md5', b'<some_md5>'):
-    # already exists, dropping
-else:
-    uniq.call('put', 'md5', b'<some_md5>')
-    # new value written into db
+uniq.call('check', {
+    md5_PREFIX + b'<some_md5>',
+    md5_PREFIX + b'<some_md5>',
+    ...
+})
+uniq.call('put', {
+    md5_PREFIX + b'<some_md5>': b'<value>',
+    md5_PREFIX + b'<some_md5>': b'<value>',
+    ...
+})
 '''
 
 import pickle
 from ..rabbit import rpc_server, rabbit_main, AbstractRpcClient
 from ..config import UNICHECK_QUEUE_NAME
-
-from .md5 import check_keys as md5_check_keys, put_keys as md5_put_keys
 
 
 def validate_check(value):
@@ -27,11 +31,19 @@ def validate_put(value):
         assert isinstance(v, bytes)
 
 
-available_ways = {
-    'md5': (md5_check_keys, md5_put_keys),
+def check_keys(kv, keys):
+    return kv.get_many(set(keys))
+
+
+def put_keys(kv, d):
+    kv.put_many(d)
+    return True
+
+
+METHODS = {
+    'check': (check_keys, validate_check),
+    'put': (put_keys, validate_put),
 }
-METHODS = ('check', 'put')
-VAL_FUNCS = (validate_check, validate_put)
 
 
 @rabbit_main
@@ -45,15 +57,14 @@ def run_server(connection, storage):
 
     with storage as st:
 
-        def handler(method, way, value):
-            if method not in METHODS or way not in available_ways:
+        def handler(method, value):
+            if method not in METHODS:
                 return None
-            mi = METHODS.index(method)
+            func, val = METHODS[method]
             try:
-                VAL_FUNCS[mi](value)
+                val(value)
             except AssertionError:
                 return None
-            func = available_ways[way][mi]
             return func(st, value)
 
         rpc_server(
@@ -68,8 +79,8 @@ def run_server(connection, storage):
 class UnicheckClient(AbstractRpcClient):
     QUEUE_NAME = UNICHECK_QUEUE_NAME
 
-    def serialize_request(self, method, way, value):
-        return pickle.dumps((method, way, value))
+    def serialize_request(self, method, value):
+        return pickle.dumps((method, value))
 
     def deserialize_response(self, resp):
         return pickle.loads(resp)
