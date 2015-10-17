@@ -25,7 +25,10 @@ from newapp.models import Webm, Tag
 def add_prepared_video(ffinfo, thumbs=[], nsfw_source=False, tags=None):
     webm = Webm()
     webm.video = File(open(ffinfo.path, 'rb'))
-    webm.length = round(ffinfo.duration)
+    if ffinfo.duration is None:
+        webm.length = -1
+    else:
+        webm.length = round(ffinfo.duration)
     webm.width = ffinfo.width
     webm.height = ffinfo.height
 

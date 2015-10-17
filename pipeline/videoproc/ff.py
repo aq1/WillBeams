@@ -51,7 +51,10 @@ class FFInfo(object):
 
         self.height = int(videostream['height'])
         self.width = int(videostream['width'])
-        self.duration = float(file_format['duration'])
+        if 'duration' in file_format:
+            self.duration = float(file_format['duration'])
+        else:
+            self.duration = None
 
 
 def get_file_info(filename, options=DEFAULT_FFPROBE_OPTIONS, quiet=True):
@@ -65,6 +68,8 @@ def get_file_info(filename, options=DEFAULT_FFPROBE_OPTIONS, quiet=True):
 
 
 def generate_thumbs(ffinfo, thumbs_dir, minstep=1, count=1, vfilters=None, quiet=True):
+    if ffinfo.duration is None:
+        return []
     fbase, _ = os.path.splitext(ffinfo.filename)
     fbase += '_thumb_'
     fend = '.jpg'
