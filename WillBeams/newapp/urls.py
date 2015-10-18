@@ -60,4 +60,7 @@ urlpatterns += [
     url(r'^favourite/$', 'newapp.views.favourite_videos'),
     url(r'^tag/(?P<tag>{})/$'.format(hashtag_regex_string), 'newapp.views.tag_videos'),
     url(r'^video/(?P<vid>[1-9][0-9]*)/$', 'newapp.views.video'),
+    url(r'^video/like/$', 'newapp.views.toggle_like'),
+    url(r'^video/favourite/$', 'newapp.views.toggle_favourite'),
+    url(r'^video/nsfw/$', 'newapp.views.toggle_nsfw'),
 ]

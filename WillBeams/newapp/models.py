@@ -59,7 +59,7 @@ class View(models.Model):
 
 class UserNsfw(models.Model):
     user = models.ForeignKey(User, related_name='+')
-    webm = models.ForeignKey(Webm, related_name='+')
+    webm = models.ForeignKey(Webm, related_name='usernsfw')
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:

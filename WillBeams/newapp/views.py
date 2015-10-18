@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
 # from .forms import CustomUserCreationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import logout as auth_logout
-
-from .models import Webm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
+
+from .models import Webm, UserLike, UserFavourite, UserNsfw
 
 
 def logout(request):
@@ -95,14 +97,56 @@ def tag_videos(request, tag):
     )
 
 
+@ensure_csrf_cookie
 def video(request, vid):
     webm = get_object_or_404(Webm, pk=vid)
     next_webm = Webm.objects.filter(added__lte=webm.added, id__lt=webm.pk)\
         .order_by('-added', '-id').first()
     prev_webm = Webm.objects.filter(added__gte=webm.added, id__gt=webm.pk)\
         .order_by('added', 'id').first()
-    return render(request, 'video/view.html', context={
+    data = {
         'webm': webm,
         'next': next_webm,
         'prev': prev_webm,
-    })
+    }
+    if request.user.is_authenticated():
+        data['video_like'] = webm.userlike.filter(user=request.user).exists()
+        data['video_favourite'] = webm.userfavourite.filter(user=request.user).exists()
+        data['video_nsfw'] = webm.usernsfw.filter(user=request.user).exists()
+    return render(request, 'video/view.html', context=data)
+
+
+def _toggler(request, model):
+    if request.method != 'POST':
+        return HttpResponse('Bad method, must be POST', status=400)
+    webm = get_object_or_404(Webm, pk=request.POST.get('id'))
+    state = request.POST.get('state')
+    if state not in ('true', 'false'):
+        return HttpResponse('Bad state value, must be true or false', status=400)
+    state = state == 'true'
+
+    try:
+        mrec = model.objects.get(user=request.user, webm=webm)
+        if not state:
+            mrec.delete()
+    except model.DoesNotExist:
+        if state:
+            mrec = model(user=request.user, webm=webm)
+            mrec.save()
+
+    return HttpResponse('true' if state else 'false', status=200, content_type='application/json')
+
+
+@login_required
+def toggle_like(request):
+    return _toggler(request, UserLike)
+
+
+@login_required
+def toggle_favourite(request):
+    return _toggler(request, UserFavourite)
+
+
+@login_required
+def toggle_nsfw(request):
+    return _toggler(request, UserNsfw)
