@@ -22,9 +22,11 @@
 </div>
 
 <div class="row">
-  {% with list=webm_list %}
-  {% include "pagination.inc.html" %}
-  {% endwith %}
+  <div class="col-xs-12">
+    {% with list=webm_list %}
+    {% include "pagination.inc.html" %}
+    {% endwith %}
+  </div>
 </div>
 
 {% endblock content %}

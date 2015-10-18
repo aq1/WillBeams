@@ -1,35 +1,35 @@
+{% load pagination %}
 {% if list.paginator.num_pages > 1 %}
+{% pagination list 3 as p %}
 <nav>
   <ul class="pagination">
     {% if list.has_previous %}
     <li><a href="?page={{ list.previous_page_number }}">&larr; туда</a></li>
     {% endif %}
 
-    {% if list.number > 4 %}
-      <li><a href="?page=1">1</a></li>
+    {% if p.left_end %}
+      <li><a href="?page={{ p.left_end }}">{{ p.left_end }}</a></li>
     {% endif %}
-    {% if list.number > 5 %}
+    {% if p.left_ellipsis %}
       <li class="disabled"><span style="cursor: default !important;">&hellip;</span></li>
     {% endif %}
 
-    {# http://stackoverflow.com/a/5759160/2399966 #}
-    {% for i in "xxx" %}
-      {% with n=list.number|add:"-3"|add:forloop.counter0 %}
-        {% if n >= 1 and n <= list.paginator.num_pages %}
-          <li><a href="?page={{ n }}">{{ n }}</a></li>
-        {% endif %}
-      {% endwith %}
+    {% for n in p.left_items %}
+      <li><a href="?page={{ n }}">{{ n }}</a></li>
     {% endfor %}
 
     <li class="active"><span>{{ list.number }}</span></li>
 
-    {% for i in "xxx" %}
-      {% with n=list.number|add:forloop.counter %}
-        {% if n >= 1 and n <= list.paginator.num_pages %}
-          <li><a href="?page={{ n }}">{{ n }}</a></li>
-        {% endif %}
-      {% endwith %}
+    {% for n in p.right_items %}
+      <li><a href="?page={{ n }}">{{ n }}</a></li>
     {% endfor %}
+
+    {% if p.right_ellipsis %}
+    <li class="disabled"><span style="cursor: default !important;">&hellip;</span></li>
+    {% endif %}
+    {% if p.right_end %}
+    <li><a href="?page={{ p.right_end }}">{{ p.right_end }}</a></li>
+    {% endif %}
 
     {% if list.has_next %}
     <li><a href="?page={{ list.next_page_number }}">сюда &rarr;</a></li>
