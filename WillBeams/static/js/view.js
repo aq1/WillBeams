@@ -66,6 +66,29 @@ function bindTagBox(tagbox, webmId, url, elms){
     });
 }
 
+function deleteButton(elm, url, webmId){
+    var busy = false;
+    elm.click(function(){
+        if (busy) return;
+        busy = true;
+        elm.addClass('disabled');
+        $.ajax(url, {
+            method: 'POST',
+            data: {
+                id: webmId
+            },
+            success: function(resp){
+                $('#controls').hide();
+                $('#tagbox').after('<div class="alert alert-danger">Удалено</div>').hide();
+            },
+            complete: function(){
+                elm.removeClass('disabled');
+                busy = false;
+            },
+        });
+    });
+}
+
 $(function(){
     $('[toggler-url]').each(function(){
         var j = $(this);
@@ -83,4 +106,13 @@ $(function(){
         t.attr('data-webm-id'),
         t.attr('target-url')
     );
+
+    t = $('#delete');
+    if (t.length){
+        deleteButton(
+            t,
+            t.attr('target-url'),
+            t.attr('data-webm-id')
+        );
+    }
 });

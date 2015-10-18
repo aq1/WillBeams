@@ -6,6 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import logout as auth_logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 import json
 
 from .models import Webm, UserLike, UserFavourite, UserNsfw, UserTagWebm, Tag
@@ -198,3 +199,12 @@ def update_tags(request):
         tmap[tname].delete()
 
     return HttpResponse(json.dumps(list(tags)), status=200, content_type='application/json')
+
+
+@staff_member_required
+def video_delete(request):
+    if request.method != 'POST':
+        return HttpResponse('Bad method, must be POST', status=400)
+    webm = get_object_or_404(Webm, pk=request.POST.get('id'))
+    webm.delete()
+    return HttpResponse(json.dumps('lol'), status=200, content_type='application/json')

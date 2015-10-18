@@ -13,12 +13,14 @@
         </video>
       </div>
       <div class="panel-footer">
-        <div>
+        <div style="margin-bottom: 10px;">
         {% if prev %}
         <a class="btn btn-default" href="{% url "newapp.views.video" vid=prev.pk %}">&larr; предыдущее</a>
         {% else %}
         <button class="btn btn-default" disabled="disabled">&larr; предыдущее</button>
         {% endif %}
+
+        <span id="controls">
         {% if user.is_authenticated %}
         <button class="btn {% if video_like %}btn-success active{% else %}btn-default{% endif %}"
           toggler-url="{% url "newapp.views.toggle_like" %}"
@@ -37,10 +39,17 @@
           data-aclass="btn-warning"
           data-webm-id="{{ webm.id }}"
         ><span class="glyphicon glyphicon-hand-up"></span> NSFW</button>
-        {% if is_superuser %}
-        <button class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span> Удалить</button>
+        {% if user.is_superuser %}
+        <span class="dropdown">
+          <button class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-king"></span> Админ <span class="caret"></span></button>
+          <ul class="dropdown-menu">
+            <li><a href="javascript:;" id="delete" target-url="{% url "newapp.views.video_delete" %}" data-webm-id="{{ webm.id }}">Удалить</a></li>
+          </ul>
+        </span>
         {% endif %}
         {% endif %}
+        </span>
+
         {% if next %}
         <a class="btn btn-default" href="{% url "newapp.views.video" vid=next.pk %}">следующее &rarr;</a>
         {% else %}

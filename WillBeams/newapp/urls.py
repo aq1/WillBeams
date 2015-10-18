@@ -65,4 +65,5 @@ urlpatterns += [
     url(r'^video/favourite/$', 'newapp.views.toggle_favourite'),
     url(r'^video/nsfw/$', 'newapp.views.toggle_nsfw'),
     url(r'^video/tags/$', 'newapp.views.update_tags'),
+    url(r'^video/delete/$', 'newapp.views.video_delete'),
 ]
