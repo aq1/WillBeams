@@ -52,6 +52,7 @@ def abstract_videos(request, items, label, active, **kwargs):
         webm_list = paginator.page(paginator.num_pages)
     context = {
         'webm_list': webm_list,
+        'webm_count': items.count(),
         'label': label,
         'active': active,
     }
