@@ -11,22 +11,22 @@
           Your browser does not support the <code>video</code> element.
         </video>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-xs-12 col-md-8 col-md-offset-2">
-    <nav>
-      <ul class="pager">
+      <div class="panel-footer">
         {% if prev %}
-        <li class="previous"><a href="{% url "newapp.views.video" vid=prev.pk %}">&larr; предыдущее</a></li>
+        <a class="btn btn-default" href="{% url "newapp.views.video" vid=prev.pk %}">&larr; предыдущее</a>
+        {% else %}
+        <button class="btn btn-default" disabled="disabled">&larr; предыдущее</button>
         {% endif %}
+        <button class="btn btn-default" type="submit">Button</button>
+        <button class="btn btn-default" type="submit">Button</button>
+        <button class="btn btn-default" type="submit">Button</button>
         {% if next %}
-        <li class="next"><a href="{% url "newapp.views.video" vid=next.pk %}">следующее &rarr;</a></li>
+        <a class="btn btn-default" href="{% url "newapp.views.video" vid=next.pk %}">следующее &rarr;</a>
+        {% else %}
+        <button class="btn btn-default" disabled="disabled">следующее &rarr;</button>
         {% endif %}
-      </ul>
-    </nav>
+      </div>
+    </div>
   </div>
 </div>
 
