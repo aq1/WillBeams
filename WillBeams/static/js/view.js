@@ -38,6 +38,34 @@ function bindToggleButton(elm, url, activeClass, webmId){
     });
 }
 
+function bindTagBox(tagbox, webmId, url, elms){
+    var busy = false;
+    var btn = tagbox.find('button');
+    var inp = tagbox.find('input[type=text]');
+
+    btn.click(function(){
+        if (busy) return;
+        busy = true;
+        btn.prop('disabled', true);
+        inp.prop('disabled', true);
+        $.ajax(url, {
+            method: 'POST',
+            data: {
+                id: webmId,
+                tags: inp.val().split(',').map(function(x){return x.trim();})
+            },
+            success: function(resp){
+                inp.val(resp.join(', '));
+            },
+            complete: function(){
+                btn.prop('disabled', false);
+                inp.prop('disabled', false);
+                busy = false;
+            },
+        });
+    });
+}
+
 $(function(){
     $('[toggler-url]').each(function(){
         var j = $(this);
@@ -48,7 +76,11 @@ $(function(){
             j.attr('data-webm-id')
         );
     });
-});
 
-// bindToggleButton('#fav', '{# url "newapp.views.toggle_favourite" #}', 'btn-success');
-// bindToggleButton('#nsfw', '{# url "newapp.views.toggle_nsfw" #}', 'btn-warning');
+    var t = $('#tagbox');
+    bindTagBox(
+        t,
+        t.attr('data-webm-id'),
+        t.attr('target-url')
+    );
+});

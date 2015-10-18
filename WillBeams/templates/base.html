@@ -36,6 +36,9 @@
             {% if active == "tag" %}
             <li class="active"><a href="{% url "newapp.views.tag_videos" tag=tag %}">Тег {{ tag }}</a></li>
             {% endif %}
+            {% if active == "usertag" %}
+            <li class="active"><a href="{% url "newapp.views.usertag_videos" tag=tag %}">Польз. тег {{ tag }}</a></li>
+            {% endif %}
           </ul>
           <form class="navbar-form navbar-left" role="search">
             <div class="form-group">

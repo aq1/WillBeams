@@ -6,8 +6,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import logout as auth_logout
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
+import json
 
-from .models import Webm, UserLike, UserFavourite, UserNsfw
+from .models import Webm, UserLike, UserFavourite, UserNsfw, UserTagWebm, Tag
+from .hashtag import hashtag_regex
 
 
 def logout(request):
@@ -97,6 +99,16 @@ def tag_videos(request, tag):
     )
 
 
+def usertag_videos(request, tag):
+    return abstract_videos(
+        request,
+        Webm.objects.filter(usertagwebm__tag__name=tag).order_by('-added'),
+        'Пользовательский тег ' + tag,
+        'usertag',
+        tag=tag
+    )
+
+
 @ensure_csrf_cookie
 def video(request, vid):
     webm = get_object_or_404(Webm, pk=vid)
@@ -113,6 +125,8 @@ def video(request, vid):
         data['video_like'] = webm.userlike.filter(user=request.user).exists()
         data['video_favourite'] = webm.userfavourite.filter(user=request.user).exists()
         data['video_nsfw'] = webm.usernsfw.filter(user=request.user).exists()
+        usertags = UserTagWebm.objects.filter(webm=webm, user=request.user).prefetch_related('tag')
+        data['tags'] = ', '.join(usertag.tag.name for usertag in usertags)
     return render(request, 'video/view.html', context=data)
 
 
@@ -150,3 +164,37 @@ def toggle_favourite(request):
 @login_required
 def toggle_nsfw(request):
     return _toggler(request, UserNsfw)
+
+
+@login_required
+def update_tags(request):
+    if request.method != 'POST':
+        return HttpResponse('Bad method, must be POST', status=400)
+    webm = get_object_or_404(Webm, pk=request.POST.get('id'))
+
+    tags = set()
+    for tag in request.POST.getlist('tags[]', []):
+        if not isinstance(tag, str):
+            continue
+        tag = tag.strip()
+        if not tag or hashtag_regex.match(tag) is None:
+            continue
+        tags.add(tag)
+
+    usertags = UserTagWebm.objects.filter(webm=webm, user=request.user).prefetch_related('tag')
+    tmap = {}
+    for usertag in usertags:
+        tmap[usertag.tag.name] = usertag
+
+    to_add = tags - set(tmap.keys())
+    to_delete = set(tmap.keys()) - tags
+
+    for tname in to_add:
+        tag_obj, _ = Tag.objects.get_or_create(name=tname)
+        usertag = UserTagWebm(webm=webm, user=request.user, tag=tag_obj)
+        usertag.save()
+
+    for tname in to_delete:
+        tmap[tname].delete()
+
+    return HttpResponse(json.dumps(list(tags)), status=200, content_type='application/json')

@@ -13,6 +13,7 @@
         </video>
       </div>
       <div class="panel-footer">
+        <div>
         {% if prev %}
         <a class="btn btn-default" href="{% url "newapp.views.video" vid=prev.pk %}">&larr; предыдущее</a>
         {% else %}
@@ -45,6 +46,13 @@
         {% else %}
         <button class="btn btn-default" disabled="disabled">следующее &rarr;</button>
         {% endif %}
+        </div>
+        <div class="input-group" style="margin-top: 10px;" id="tagbox" target-url="{% url "newapp.views.update_tags" %}" data-webm-id="{{ webm.id }}">
+          <input class="form-control" type="text" value="{{ tags }}">
+          <span class="input-group-btn">
+            <button class="btn btn-default">Update tags</button>
+          </span>
+        </div>
       </div>
     </div>
   </div>
