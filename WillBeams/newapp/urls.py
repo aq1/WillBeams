@@ -3,7 +3,6 @@ from .hashtag import hashtag_regex_string
 
 
 urlpatterns = [
-    url(r'^$', 'newapp.views.index'),
     url(r'^register/$', 'newapp.views.register'),
     url(r'^register/thankyou/$', 'newapp.views.register_after'),
 
@@ -56,7 +55,7 @@ urlpatterns = [
 # Video lists
 
 urlpatterns += [
-    url(r'^new/$', 'newapp.views.new_videos'),
+    url(r'^$', 'newapp.views.new_videos', name='home'),
     url(r'^liked/$', 'newapp.views.liked_videos'),
     url(r'^favourite/$', 'newapp.views.favourite_videos'),
     url(r'^tag/(?P<tag>{})/$'.format(hashtag_regex_string), 'newapp.views.tag_videos'),

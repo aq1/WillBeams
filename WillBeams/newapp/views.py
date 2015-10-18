@@ -8,13 +8,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 
 
-def index(request):
-    return render(request, 'home.html')
-
-
 def logout(request):
     auth_logout(request)
-    return redirect('newapp.views.index')
+    return redirect('home')
 
 
 def register_after(request):
